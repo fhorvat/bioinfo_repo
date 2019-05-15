@@ -1,0 +1,34 @@
+###########################
+# adds paths and number of samples to PBS_ARRAY_INDEX variable in all scripts,
+sh 00b.change_scripts.sh
+
+# aligns to genome
+JOB_01=`qsub 01.map_to_genome.STAR_SE.pbs.sh`;echo $JOB_01
+
+# classifies mapped reads
+JOB_03=`qsub -W depend=afterok:$JOB_01 03a.class_reads.change_template.pbs.sh`;echo $JOB_03
+
+# sums all reads classes
+JOB_04=`qsub -W depend=afterok:$JOB_03 04a.sum_reads.pbs.sh`;echo $JOB_04
+
+# scales bigWig to RPM
+qsub -W depend=afterok:$JOB_04 05.scale_bigWig.pbs.sh
+###########################
+
+
+###########################
+# creates symbolic links of bw, bam and bami files on hex.bioinfo.hr (needs password input)
+ssh hex.bioinfo.hr 'bash -s' < 06a.create_hex_links.sh
+###########################
+
+
+###########################
+# downloads URLs of tracks from hex
+sh 06b.read_hex_URLs.sh
+
+# writes all sample stats and tracks URL to one table
+Rscript 07.write_stats_and_tracks.R &> Rscript.07.write_stats_and_tracks.R
+
+# tidies dir and files
+sh 08.tidy_files.sh
+###########################

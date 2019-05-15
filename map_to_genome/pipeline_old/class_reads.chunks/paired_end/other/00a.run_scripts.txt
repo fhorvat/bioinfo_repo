@@ -1,0 +1,47 @@
+###########################
+# changes variables in all scripts
+sh 00b.change_scripts.sh
+
+# maps to genome
+JOB_01=`qsub 01.map_to_genome.STAR.PE.pbs.sh`;echo $JOB_01
+
+# merges unmapped reads and maps them to genome again
+JOB_02=`qsub -W depend=afterok:$JOB_01 02a.merge_unmapped_to_genome.map.pbs.sh`;echo $JOB_02
+
+# merges two bam files (original mapping and merged bams mapping)
+qsub -W depend=afterok:$JOB_02 02b.merge_bams.pbs.sh
+
+# classifies mapped reads
+JOB_04=`qsub -W depend=afterok:$JOB_02 04a.class_reads.change_template.PE.pbs.sh`;echo $JOB_04
+
+# sums all reads classes
+JOB_05=`qsub -W depend=afterok:$JOB_04 05a.sum_reads.pbs.sh`;echo $JOB_05
+
+# scales bigWig to RPM
+qsub -W depend=afterok:$JOB_05 06.scale_bigWig.PE.pbs.sh
+###########################
+
+
+###########################
+# creates symbolic links of bw, bam and bami files on hex.bioinfo.hr (needs password input)
+ssh hex.bioinfo.hr 'bash -s' < 07a.create_hex_links.PE.sh
+###########################
+
+
+###########################
+# downloads URLs of tracks from hex
+sh 07b.read_hex_URLs.PE.sh
+
+# writes all sample stats and tracks URL to one table
+Rscript 08.write_stats_and_tracks.R &> Rscript.08.write_stats_and_tracks.R
+
+# tidies dir and files
+sh 09a.tidy_files.PE.sh
+###########################
+
+
+###########################
+# optionally delete all intermediate files (in 1_mapped and 2_unmapped)
+#sh 0_scripts/09b.delete_files.sh
+###########################
+
