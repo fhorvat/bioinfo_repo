@@ -1,0 +1,13 @@
+01_shrimpCS_genome_index.pbs.sh
+- creates genome index for mapping
+- not obligatory, but it speeds up mapping
+
+02_convert_reads_solid2fastq.pbs.sh 
+- takes separate sequence (csfasta.gz) and quality (qual.gz)
+files and unites them in one fastq-like file
+- fastq output is still in color-space, does not covert reads to letter-space
+
+03_shrimpCS_fastq_SE.pbs.sh
+- maps reads in colorspace to genome index
+- output is .sam, it converts it to .bam, sorts and indexes it
+- creates .bigWig coverage 
