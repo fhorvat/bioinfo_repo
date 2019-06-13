@@ -1,0 +1,20 @@
+{
+ "filters" :
+ [
+ {
+ "reference" : "chr1",
+ "cigar" : "*21M*", 
+ "tag" : "nM:<1"
+ },
+ {
+ "reference" : "chr1",
+ "cigar" : "*22M*", 
+ "tag" : "nM:<1"
+ }, 
+ {
+ "reference" : "chr1",
+ "cigar" : "*23M*", 
+ "tag" : "nM:<1"
+ }
+ ]
+}
