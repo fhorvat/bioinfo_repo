@@ -1,7 +1,8 @@
 #!/usr/bin/env nextflow
 
 //// variables and scripts
-READS = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test/s_*{1,2}.txt.gz"
+INPUT_DIR = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test"
+READS = "$INPUT_DIR/s_*{1,2}.txt.gz"
 
 GENOME_DIR = "/common/DB/genome_reference/mouse/mm10.GRCm38.GCA_000001635.2"
 SJDB_OVERHANG = "sjdbOverhang_249"
@@ -10,7 +11,7 @@ CHR_LENGTH = "$STAR_INDEX/chrNameLength.txt"
 GTF_PATH = "$GENOME_DIR/ensembl.93.GRCm38.p6.20180919.UCSCseqnames.gtf.gz"
 RMSK_PATH = "$GENOME_DIR/rmsk.mm10.20180919.clean.fa.out.gz"
 GENES_INFO_PATH = "$GENOME_DIR/ensembl.93.GRCm38.p6.20180919.UCSCseqnames.geneInfo.csv"
-SAMPLE_TABLE_PATH = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Documentation/CNOT6L.sample_table.csv"
+SAMPLE_TABLE_PATH = "$INPUT_DIR/../../Documentation/CNOT6L.sample_table.csv"
 GROUPING_VARIABLES = "stage genotype"
 RESULTS_GROUPS = "GV_KO,GV_WT MII_KO,MII_WT 1C_KO,1C_WT"
 
@@ -18,13 +19,14 @@ HEX_PATH = "~/public_html/Svoboda/bw_tracks/accessory_data_sets/nextflow_test"
 LOBSANG_PATH = "${PWD}".replaceFirst(/common/, "common-lobsang")
 TABLE_PATH = "http://hex.bioinfo.hr/~fhorvat" + "${HEX_PATH}".replaceFirst(/~\/public_html/, "") + "/log.tracks_URL.txt"
 
-CLASS_READS_SCRIPT = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test/bin/class_reads.R"
-SUM_READ_STATS_SCRIPT = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test/bin/sum_read_stats.R"
-SCALE_BIGWIG_SCRIPT= "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test/bin/scale_bigWig.R"
-STATS_AND_TRACKS_SCRIPT = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test/bin/write_stats_and_tracks.R"
-SUMMARIZE_OVERLAPS_SCRIPT = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test/bin/summarizeOverlaps.R"
-FPKM_TABLES_SCRIPT = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test/bin/FPKM_tables.R"
-DIFFEXP_ANALYSIS_SCRIPT = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test/bin/diffExp_analysis.R"
+SCRIPTS_DIR = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test/bin"
+CLASS_READS_SCRIPT = "$SCRIPTS_DIR/class_reads.R"
+SUM_READ_STATS_SCRIPT = "$SCRIPTS_DIR/read_stats.R"
+SCALE_BIGWIG_SCRIPT= "$SCRIPTS_DIR/scale_bigWig.R"
+STATS_AND_TRACKS_SCRIPT = "$SCRIPTS_DIR/write_stats_and_tracks.R"
+SUMMARIZE_OVERLAPS_SCRIPT = "$SCRIPTS_DIR/summarizeOverlaps.R"
+FPKM_TABLES_SCRIPT = "$SCRIPTS_DIR/FPKM_tables.R"
+DIFFEXP_ANALYSIS_SCRIPT = "$SCRIPTS_DIR/diffExp_analysis.R"
 
 //// channels
 // fastq to fastqc channel
