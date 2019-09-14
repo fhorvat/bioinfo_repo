@@ -39,3 +39,36 @@ fastq2fasta () {
 countFastq () {
    zcat $1 | awk '{s++}END{print s/4}'
 }
+
+# get length of variable (bash array)
+vlen () {
+    declare ARRAY_NAME="$1"
+    declare INDIRECT_REFERENCE="\${#${ARRAY_NAME}[@]}"
+    case "$-" in
+    *'u'*)
+        set +u
+        eval "echo \"${INDIRECT_REFERENCE}\""
+        set -u
+        ;;
+    *)
+        eval "echo \"${INDIRECT_REFERENCE}\""
+        ;;
+    esac
+}
+
+# print whole array
+vprnt () {
+    declare ARRAY_NAME="$1"
+    declare INDIRECT_REFERENCE="\${${ARRAY_NAME}[@]}"
+    case "$-" in
+    *'u'*)
+        set +u
+        eval "echo \"${INDIRECT_REFERENCE}\""
+        set -u
+        ;;
+    *)
+        eval "echo \"${INDIRECT_REFERENCE}\""
+        ;;
+    esac
+}
+
