@@ -4,14 +4,14 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -N pbs.03a.merge_bams
-#PBS -l select=ncpus=10:mem=20g
+#PBS -l select=ncpus=12:mem=20g
 #PBS -J 0-%N_SAMPLES
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
 # ----------------MAP MERGED------------------- #
 # variables
-THREADS=10
+THREADS=12
 CHR_LENGTH=%GENOME_DIR/STAR_index/%SJDB_OVERHANG/chrNameLength.txt
 
 INPUT_DIR=.

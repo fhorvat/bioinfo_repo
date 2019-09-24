@@ -4,13 +4,13 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -N pbs.01.map_to_genome.STAR
-#PBS -l select=ncpus=10:mem=60g
+#PBS -l select=ncpus=12:mem=60g
 #PBS -J 0-%N_SAMPLES
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
-THREADS=10
+THREADS=12
 STAR_INDEX=%GENOME_DIR/STAR_index/%SJDB_OVERHANG
 CHR_LENGTH=${STAR_INDEX}/chrNameLength.txt
 
