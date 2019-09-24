@@ -49,7 +49,7 @@ threads <- args$threads
 
 ### other experiment paths
 # set base experiment path
-base_path <- file.path("/common/WORK/fhorvat/Projekti/Svoboda/accessory_data_sets/RNAseq", experiment)
+base_path <- file.path(mapped_path, "../..")
 
 # documentation path
 documentation_path <- file.path(base_path, "Data/Documentation")

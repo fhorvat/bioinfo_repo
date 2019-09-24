@@ -1,0 +1,6 @@
+hub Sirena_evolution
+shortLabel Sirena Hub
+longLabel Sirena rodent evolution hub
+genomesFile Sirena_scaffolds.txt
+email filip.horvat@img.cas.cz
+descriptionUrl aboutHub.html

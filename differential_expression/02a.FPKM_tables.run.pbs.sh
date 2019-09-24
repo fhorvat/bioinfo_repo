@@ -15,7 +15,7 @@ ENSEMBL_VERSION="93"
 GENOME_PATH="/common/DB/genome_reference/mouse/mm10.GRCm38.GCA_000001635.2"
 MAPPED_DIR="STAR_mm10"
 THREADS="1"
-GROUPING_VARIABLES="stage genotype"
+GROUPING_VARIABLES="genotype"
 
 # experiment
 EXPERIMENT=${PWD%/Analysis*}
