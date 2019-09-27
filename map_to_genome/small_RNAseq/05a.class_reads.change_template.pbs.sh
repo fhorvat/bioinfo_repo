@@ -3,25 +3,26 @@
 #PBS -q MASTER
 #PBS -M fihorvat@gmail.com
 #PBS -m n
-#PBS -N pbs.04a.class_reads
+#PBS -N pbs.05a.0.class_reads
 #PBS -l select=ncpus=1:mem=20g
-#PBS -J 0-%N_SAMPLES
+#PBS -J 0-15
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
 # set path, get template, bams and names
-TEMPLATE=(04b.class_reads.template.R)
-SCRIPT_NAME=Rscript.${TEMPLATE}
+IN_PATH=${PWD}
+TEMPLATE=${IN_PATH}/05b.class_reads.template.R
+SCRIPT_NAME=Rscript.${PBS_ARRAY_INDEX}.${TEMPLATE#${IN_PATH}/}
 
-IN_PATH=.
-FILE=($(find ${IN_PATH} -maxdepth 1 -name "*.sortedByName.bam"))
+FILE=($IN_PATH/*.21to23nt.bam)
 BAM=${FILE[$PBS_ARRAY_INDEX]}
-BAM_NAME=${BAM#${IN_PATH}/}
-BAM_NAME=${BAM_NAME%.sortedByName.bam}
+BAM_NAME=`basename $BAM`
+BAM_NAME=${BAM_NAME%.bam}
 SCRIPT=${SCRIPT_NAME/template.R/${BAM_NAME}.R}
 
 # ----------------Commands------------------- #
 # change template, output to script, submit script
 perl -pe "s|%BAM_PATH|$BAM|" $TEMPLATE > $SCRIPT
 Rscript $SCRIPT
+

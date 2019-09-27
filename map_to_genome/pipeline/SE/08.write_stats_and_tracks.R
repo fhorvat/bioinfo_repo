@@ -39,7 +39,7 @@ tracks_tbl <-
                 str_detect(string = URL, pattern = "http"),
                 !str_detect(string = URL, pattern = "bai"),
                 str_detect(string = URL, pattern = str_c(stats_tbl$sample_id, collapse = "|"))) %>%
-  dplyr::mutate(sample_id = basename(URL) %>% str_remove_all(., "\\.bam$|\\.bw$|\\.scaled"),
+  dplyr::mutate(sample_id = basename(URL) %>% str_remove_all(., "\\.bam$|\\.bw$|\\.scaled|\\.perfect"),
                 experiment = dirname(URL) %>% basename(.) %>% str_remove(., "_.*"),
                 scaled = ifelse(str_detect(URL, "scaled"), "RPM_scaled", "raw"),
                 file_type = ifelse(test = str_detect(basename(URL), "bw"),
@@ -53,13 +53,24 @@ tracks_tbl <-
                              yes = str_c("track type=bigWig name=\"", bw_name, "\" bigDataUrl=\"", URL, "\""),
                              no = str_c("track type=bam name=\"", bam_name, "\" bigDataUrl=\"", URL, "\""))) %>%
   dplyr::select(-c(bw_name, bam_name)) %>%
-  tidyr::unite(scale_type, scaled, file_type, sep = ".") %>%
-  tidyr::spread(key = scale_type, value = URL) %>%
-  dplyr::select(sample_id, experiment, raw.coverage, RPM_scaled.coverage, raw.individual_reads)
+  tidyr::unite(scale_type, scaled, file_type, sep = ".") 
+
+# create table with all possible columns
+tracks_placeholder <- 
+  tibble(sample_id = rep(unique(tracks_tbl$sample_id), each = 3),
+         scale_type = rep(c("raw.coverage", "RPM_scaled.coverage", "raw.individual_reads"), length(unique(tracks_tbl$sample_id))))
+
+# join placeholder with table
+tracks_tbl_tidy <- 
+  tracks_tbl %>% 
+  dplyr::select(-experiment) %>% 
+  dplyr::right_join(., tracks_placeholder, by = c("sample_id", "scale_type")) %>% 
+  tidyr::spread(key = scale_type, value = URL) %>% 
+  dplyr::mutate(experiment = unique(tracks_tbl$experiment))
 
 # combine and save
 stats_and_tracks <-
-  right_join(stats_tbl, tracks_tbl, by = "sample_id") %>%
+  right_join(stats_tbl, tracks_tbl_tidy, by = "sample_id") %>%
   dplyr::select(experiment, sample_id, raw.coverage, RPM_scaled.coverage, raw.individual_reads, everything()) %T>%
   readr::write_csv(., path = file.path(outpath, str_c("log.", unique(.$experiment), ".stats_and_tracks.csv")))
 

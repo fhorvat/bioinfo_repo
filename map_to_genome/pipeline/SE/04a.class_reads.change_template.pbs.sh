@@ -15,7 +15,7 @@ TEMPLATE=(04b.class_reads.template.R)
 SCRIPT_NAME=Rscript.${TEMPLATE}
 
 IN_PATH=.
-FILE=(`ls ${IN_PATH}/*.sortedByName.bam`)
+FILE=($(find ${IN_PATH} -maxdepth 1 -name "*.sortedByName.bam"))
 BAM=${FILE[$PBS_ARRAY_INDEX]}
 BAM_NAME=${BAM#${IN_PATH}/}
 BAM_NAME=${BAM_NAME%.sortedByName.bam}
