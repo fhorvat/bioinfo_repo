@@ -4,13 +4,13 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -N pbs.03b.sort_bam_by_name
-#PBS -l select=ncpus=6:mem=20g
+#PBS -l select=ncpus=6:mem=40g
 #PBS -J 0-%N_SAMPLES
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
-MEMORY=20GB
+MEMORY=40GB
 THREADS=6
 
 INPUT_DIR=.
@@ -21,4 +21,4 @@ BASE=${BASE%.bam}
 
 # ----------------Commands------------------- #
 # sort by name
-sambamba sort -m $MEMORY -o ${BASE}.sortedByName.bam -n -t $THREADS $FILE
+samtools sort -m $MEMORY -o ${BASE}.sortedByName.bam -n -@ $THREADS $FILE

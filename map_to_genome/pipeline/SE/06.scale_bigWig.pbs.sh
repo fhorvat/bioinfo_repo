@@ -13,7 +13,7 @@ cd $PBS_O_WORKDIR
 CHR_LENGTH=%GENOME_DIR/STAR_index/%SJDB_OVERHANG/chrNameLength.txt
 
 INPUT_DIR=.
-IN_SEQ=(`find $INPUT_DIR -name "*.bam" -not -name "*genome*" -not -name "*rDNA_45S*" -not -name "*sortedByName*"`)
+IN_SEQ=($(find $INPUT_DIR -maxdepth 1 -name "*.bam" -not -name "*genome*" -not -name "*rDNA_45S*" -not -name "*sortedByName*"))
 FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
 BASE=${BASE%.bam}

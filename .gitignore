@@ -1,2 +1,5 @@
 # exclude vfranke scripts
 /vfranke/*
+
+# exclude tutorial
+./git_tutorial.txt
