@@ -2,4 +2,4 @@
 /vfranke/*
 
 # exclude tutorial
-./git_tutorial.txt
+./git_tutorial.sh

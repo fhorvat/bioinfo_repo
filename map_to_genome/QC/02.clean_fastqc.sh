@@ -9,7 +9,7 @@ EXP_NAME=`basename ${PWD%/Data/Raw/QC}`
 multiqc .
 
 # add to archive, remove
-tar zcvf ${EXP_NAME}.fastqc.tar.gz *_fastqc.html
-rm $INPUT_DIR/*.zip
+zip ${EXP_NAME}.zip *_fastqc.html
+rm $INPUT_DIR/s_*.zip
 rm $INPUT_DIR/*_fastqc.html
-
+rm $INPUT_DIR/pbs.0* 
