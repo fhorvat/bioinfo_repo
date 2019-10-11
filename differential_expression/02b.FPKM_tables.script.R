@@ -60,7 +60,7 @@ base_path <- file.path(mapped_path, "../..")
 documentation_path <- file.path(base_path, "Documentation")
 
 # analysis path
-analysis_path <- file.path(base_path, "../Analysis/expression")
+analysis_path <- inpath
 
 
 ### documentation

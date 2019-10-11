@@ -5,12 +5,12 @@
 #PBS -m n
 #PBS -N pbs.02.scale_bigWig
 #PBS -l select=ncpus=1:mem=10g
-#PBS -J 0-x
+#PBS -J 0-3
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
-STAR_INDEX=%GENOME_DIR/STAR_index/%SJDB_OVERHANG
+STAR_INDEX=/common/DB/genome_reference/mouse/mm10.GRCm38.GCA_000001635.2/STAR_index/sjdbOverhang_249
 CHR_LENGTH=${STAR_INDEX}/chrNameLength.txt
 
 INPUT_DIR=.
