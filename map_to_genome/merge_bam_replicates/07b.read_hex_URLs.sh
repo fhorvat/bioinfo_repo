@@ -1,7 +1,6 @@
 #/bin/bash
 # ----------------Loading variables------------------- #
-EXPERIMENT=Yang_2016_SciAdv_GSE83581
-HEX_PATH=~/public_html/Svoboda/bw_tracks/accessory_data_sets/${EXPERIMENT}
+HEX_PATH=%HEX_PATH/merged_replicates
 TABLE_PATH=http://hex.bioinfo.hr/~fhorvat/${HEX_PATH#~/public_html}/log.tracks_URL.txt
 
 # ----------------Commands------------------- #
@@ -9,5 +8,5 @@ TABLE_PATH=http://hex.bioinfo.hr/~fhorvat/${HEX_PATH#~/public_html}/log.tracks_U
 wget $TABLE_PATH
 
 # change permissions
-find ./6_tracks -name "*.21to23nt.scaled.bw" -exec chmod 744 {} \;
-find . -name "*.21to23nt.bam*" -exec chmod 744 {} \;
+find . -name "*.bw" -exec chmod 744 {} \;
+find . -name "*.bam*" -not -name "*genome*" -not -name "*rDNA_45S*" -not -name "*sortedByName*" -exec chmod 744 {} \;

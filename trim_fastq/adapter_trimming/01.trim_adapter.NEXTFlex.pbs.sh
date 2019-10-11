@@ -18,7 +18,7 @@ FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${IN_DIR}/}
 BASE=${BASE%.txt.gz}
 
-ADAPTER=../../Documentation/NEXTflex_smallRNA_3prime_adapter.fa
+ADAPTER=/common/WORK/fhorvat/Projekti/Svoboda/scripts/trim_fastq/adapter_trimming/NEXTflex_smallRNA_3prime_adapter.fa
 BBDUK_PAR1="overwrite=t \
 ktrim=r \
 k=19 \

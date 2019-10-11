@@ -9,7 +9,7 @@
 cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
-ADAPTER=/common/WORK/fhorvat/reference/adapters/Illumina_TruSeq_Small_RNA.fa 
+ADAPTER=/common/WORK/fhorvat/Projekti/Svoboda/scripts/trim_fastq/adapter_trimming/Illumina_TruSeq_Small_RNA.fa 
 
 IN_DIR=../Links
 IN_SEQ=($IN_DIR/*.fastq.gz)

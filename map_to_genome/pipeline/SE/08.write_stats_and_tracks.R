@@ -25,6 +25,9 @@ outpath <- getwd()
 stats_path <- file.path(outpath, "log.read_stats.txt")
 tracks_path <- file.path(outpath, "log.tracks_URL.txt")
 
+experiment <- "%EXPERIMENT"
+experiment_name <- "%EXPERIMENT_NAME"
+
 ######################################################## READ DATA
 
 ######################################################## MAIN CODE
@@ -39,16 +42,16 @@ tracks_tbl <-
                 str_detect(string = URL, pattern = "http"),
                 !str_detect(string = URL, pattern = "bai"),
                 str_detect(string = URL, pattern = str_c(stats_tbl$sample_id, collapse = "|"))) %>%
-  dplyr::mutate(sample_id = basename(URL) %>% str_remove_all(., "\\.bam$|\\.bw$|\\.scaled|\\.perfect"),
-                experiment = dirname(URL) %>% basename(.) %>% str_remove(., "_.*"),
+  dplyr::mutate(sample_id = basename(URL) %>% str_remove_all(., "\\.bam$|\\.bw$|\\.scaled"),
+                experiment = experiment,
                 scaled = ifelse(str_detect(URL, "scaled"), "RPM_scaled", "raw"),
                 file_type = ifelse(test = str_detect(basename(URL), "bw"),
                                    yes = "coverage",
                                    no = "individual_reads"),
                 bw_name = ifelse(test = (scaled == "RPM_scaled"),
-                                 yes = str_c(experiment, str_remove(sample_id, "^s_"), "scaled", sep = "."),
-                                 no = str_c(experiment, str_remove(sample_id, "^s_"), "raw", sep = ".")),
-                bam_name = str_c(experiment, str_remove(sample_id, "^s_"), "bam", sep = "."),
+                                 yes = str_c(str_remove(sample_id, "^s_"), experiment_name, "scaled", sep = "."),
+                                 no = str_c(str_remove(sample_id, "^s_"), experiment_name, "raw", sep = ".")),
+                bam_name = str_c(str_remove(sample_id, "^s_"), experiment_name, "bam", sep = "."),
                 URL = ifelse(test = (file_type == "coverage"),
                              yes = str_c("track type=bigWig name=\"", bw_name, "\" bigDataUrl=\"", URL, "\""),
                              no = str_c("track type=bam name=\"", bam_name, "\" bigDataUrl=\"", URL, "\""))) %>%
@@ -66,11 +69,12 @@ tracks_tbl_tidy <-
   dplyr::select(-experiment) %>% 
   dplyr::right_join(., tracks_placeholder, by = c("sample_id", "scale_type")) %>% 
   tidyr::spread(key = scale_type, value = URL) %>% 
-  dplyr::mutate(experiment = unique(tracks_tbl$experiment))
+  dplyr::mutate(experiment = experiment)
 
 # combine and save
 stats_and_tracks <-
   right_join(stats_tbl, tracks_tbl_tidy, by = "sample_id") %>%
   dplyr::select(experiment, sample_id, raw.coverage, RPM_scaled.coverage, raw.individual_reads, everything()) %T>%
-  readr::write_csv(., path = file.path(outpath, str_c("log.", unique(.$experiment), ".stats_and_tracks.csv")))
+  readr::write_csv(., path = file.path(outpath, str_c("log.", experiment, ".stats_and_tracks.csv")))
+
 

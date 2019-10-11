@@ -55,7 +55,7 @@ base_path <- file.path(mapped_path, "../..")
 documentation_path <- file.path(base_path, "Data/Documentation")
 
 # analysis path
-analysis_path <- file.path(base_path, "Analysis/expression")
+analysis_path <- inpath
 
 
 ### bam files
@@ -105,7 +105,8 @@ se <- GenomicAlignments::summarizeOverlaps(features = exons_gr,
                                            reads = bamfiles,
                                            mode = "Union",
                                            singleEnd = isSingleEnd,
-                                           ignore.strand = TRUE)
+                                           ignore.strand = TRUE, 
+					   fragments = !isSingleEnd)
 
 # save summarizeOverlaps
 saveRDS(se, file = file.path(outpath, basename(exons_path) %>% str_replace(., "reducedExons.RDS", str_c(experiment, ".se.RDS"))))
