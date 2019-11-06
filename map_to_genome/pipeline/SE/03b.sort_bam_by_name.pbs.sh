@@ -21,4 +21,4 @@ BASE=${BASE%.bam}
 
 # ----------------Commands------------------- #
 # sort by name
-samtools sort -m $MEMORY -o ${BASE}.sortedByName.bam -n -@ $THREADS $FILE
+samtools sort -o ${BASE}.sortedByName.bam -n -@ $THREADS $FILE

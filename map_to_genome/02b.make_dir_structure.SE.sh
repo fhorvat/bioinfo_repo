@@ -8,7 +8,7 @@ $IN_DIR/Data/Raw/Cleaned \
 $IN_DIR/Data/Raw/Links \
 $IN_DIR/Data/Mapped/STAR_mm10 \ 
 $IN_DIR/Data/Documentation \
-$IN_DIR/Analysis/expression
+$IN_DIR/Analysis/expression/results
 
 # copy scripts
 cp /common/WORK/fhorvat/Projekti/Svoboda/scripts/map_to_genome/pipeline/SE/0* $IN_DIR/Data/Mapped/STAR_mm10
