@@ -9,5 +9,5 @@ TABLE_PATH=http://hex.bioinfo.hr/~fhorvat/${HEX_PATH#~/public_html}/log.tracks_U
 wget $TABLE_PATH
 
 # change permissions
-find ./6_tracks -name "*.21to23nt.scaled.bw" -exec chmod 744 {} \;
-find . -name "*.21to23nt.bam*" -exec chmod 744 {} \;
+find ./6_tracks -name "*.bw" -exec chmod 744 {} \;
+find . -name "*.bam*" -exec chmod 744 {} \;
