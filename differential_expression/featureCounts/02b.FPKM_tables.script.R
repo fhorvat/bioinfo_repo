@@ -107,7 +107,8 @@ fpkm_long_tb <-
   .[features_tb, on = "gene_id", `:=`(width = width)] %>%
   .[, fpm := (counts / round(library_size / 1E6, 6))] %>%
   .[, fpkm := (fpm / round(width / 1E3, 3))] %>%
-  .[, c("gene_id", "sample_id", "counts", "fpm", "fpkm", grouping_variables), with = F]
+  .[, c("gene_id", "sample_id", "counts", "fpm", "fpkm", grouping_variables), with = F] %>%
+  .[!is.na(gene_id)]
 
 # save long FPKM table
 fpkm_long_tb %>%

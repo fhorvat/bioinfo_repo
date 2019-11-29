@@ -4,13 +4,13 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -N pbs.01.map_to_genome.STAR
-#PBS -l select=ncpus=10:mem=60g
-#PBS -J 0-15
+#PBS -l select=ncpus=12:mem=60g
+#PBS -J 0-9
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
-THREADS=8
+THREADS=12
 STAR_INDEX=/common/DB/genome_reference/mouse/mm10.GRCm38.GCA_000001635.2/STAR_index/sjdbOverhang_249
 CHR_LENGTH=$STAR_INDEX/chrNameLength.txt
 

@@ -26,7 +26,7 @@ BASE=${BASE%.bam}.24to31nt
 # remove reads with insertions or deletions
 # keep only perfect reads (nM tag == 0)
 samtools view -h ${FILE} | \
-awk -F '\t' '($1 ~ /^@/ || $6 !~/I/) && ($1 ~ /^@/ || $6 !~/D/) && ($1 ~ /^@/ || $6 ~/24=|25=|26=|27=|28=|29=|30=|31=/)' | \
+awk -F '\t' '($1 ~ /^@/ || $6 !~/I/) && ($1 ~ /^@/ || $6 !~/D/) && ($1 ~ /^@/ || $6 ~/24M|25M|26M|27M|28M|29M|30M|31M/)' | \
 samtools view -Sb - > ${BASE}.bam
 
 # index

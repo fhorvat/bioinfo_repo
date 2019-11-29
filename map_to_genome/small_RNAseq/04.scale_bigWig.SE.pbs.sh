@@ -3,9 +3,9 @@
 #PBS -q MASTER
 #PBS -M fihorvat@gmail.com
 #PBS -m n
-#PBS -N pbs.05.scale_bigWig
+#PBS -N pbs.04.scale_bigWig
 #PBS -l select=ncpus=1:mem=10g
-#PBS -J 0-31
+#PBS -J 0-39
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
