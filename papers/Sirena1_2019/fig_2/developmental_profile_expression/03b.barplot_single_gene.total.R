@@ -6,7 +6,7 @@ options(bitmapType = "cairo")
 wideScreen()
 
 ######################################################## WORKING DIRECTORY
-setwd("/common/WORK/fhorvat/Projekti/Svoboda/Analyses/developmental_profile_expression/plots")
+setwd("/common/WORK/fhorvat/Projekti/Svoboda/lncRNA_KO/Analysis/lnc1_paper/developmental_profile_expression")
 
 ######################################################## LIBRARIES
 library(dplyr)
@@ -43,48 +43,27 @@ ensembl_version <- 93
 # genome path
 genome_dir <- "/common/DB/genome_reference/mouse/mm10.GRCm38.GCA_000001635.2"
 
-# gene info path
-genes_info_path <- list.files(path = genome_dir, pattern = str_c("ensembl.", ensembl_version, ".*UCSCseqnames.geneInfo.csv$"), full.names = T)
-
 # reduced exons path
-exons_path <- list.files(path = genome_dir, pattern = str_c("ensembl.", ensembl_version, ".*UCSCseqnames.reducedExons.RDS$"), full.names = T)
+exons_path <- file.path(inpath, "summarizedExperiments", "ensembl.93.GRCm38.p6.20180919.UCSCseqnames.short_Sirena1.reducedExons.RDS")
 
+# gene info path
+gene_info_path <- file.path(genome_dir, "ensembl.93.GRCm38.p6.20180919.UCSCseqnames.geneInfo.csv")
 
 ### experiment
 # experiment list
 experiment_list <- c("Fugaku", 
                      "Veselovska_2015_GenomeBiol_GSE70116")
 
-# set base experiment path
-base_path <- file.path("/common/WORK/fhorvat/Projekti/Svoboda/Analyses/developmental_profile_expression")
+# main FPKM path
+fpkm_main_path <- file.path(inpath, "FPKMs")
 
-# documentation path
-documentation_path <- file.path(base_path, "Documentation")
-
-# summarizedExperiment path
-se_main_path <- file.path(base_path, "summarizedExperiments")
-
-# FPKM path
-fpkm_main_path <- file.path(base_path, "FPKMs")
-
-
-### documentation and data
-# sample table path
-sample_table_path <- list.files(documentation_path, ".*sampleTable.csv", full.names = T)
-
-# fpkm paths
+# FPKM tables paths
 fpkm_paths <- 
   list.files(path = fpkm_main_path, pattern = str_c("ensembl.", ensembl_version, ".*\\.FPKM_statistics\\.csv"), full.names = T) %>% 
   .[str_detect(., str_c(experiment_list, collapse = "|"))]
 
 
 ######################################################## READ DATA
-# read sample table
-sample_table <- data.table::fread(sample_table_path)
-
-# read genes info
-genes_info <- readr::read_csv(genes_info_path)
-
 # read counts
 fpkm_tb <- 
   purrr::map(fpkm_paths, function(path){
@@ -97,14 +76,29 @@ fpkm_tb <-
   }) %>% 
   rbindlist(.) 
 
+# read genes info
+gene_info <- readr::read_csv(gene_info_path)
+
 ######################################################## MAIN CODE
 # clean stage names
 stage_clean <- 
   tibble(stage = c("nonGrowing_oocytes", "growing_oocytes_d8_14", "growing_oocytes_d15", "GV_oocytes",
-                   "GV.WE.PE", "MII.WE.PE", "1cell.WE.PE", "2cell.WE.PE", "4cell.WE.PE", "Blast.WE.PE", "Molura.WE.PE"), 
+                   "GV.WE", "MII.WE", "1cell.WE", "2cell.WE", "4cell.WE", "Blast.WE", "Molura.WE"), 
          stage_clean = c("non-growing oocyte", "growing oocyte days 8-14", "growing oocyte day 15", "GV ", 
                          "GV", "MII", "1-cell", "2-cell", "4-cell", "Blastula", "Morula")) %>%
   mutate(stage_clean = factor(stage_clean, levels = stage_clean))
+
+## get Elob and Elobl
+fpkm_tb %>% 
+  as_tibble(.) %>% 
+  dplyr::left_join(., gene_info, by = "gene_id") %>% 
+  dplyr::filter((gene_name %in% c("Elob", "Elobl")) | (gene_id == "ENSMUSG00000110001"), 
+                experiment == "Veselovska_2015_GenomeBiol_GSE70116") %>% 
+  asdf
+  dplyr::select(gene_name, stage, avg_fpkm) %>% 
+  dplyr::mutate(gene_name = replace(gene_name, gene_name == "C86187", "Sirena1.exons_1_4")) %>% 
+  tidyr::pivot_wider(id_cols = gene_name, names_from = stage, values_from = avg_fpkm) %T>% 
+  readr::write_csv(., file.path(outpath, "Veselovska_2015_GenomeBiol_GSE70116.Sirena1_Elob_Elobl.FPKM.csv"))
 
 ### filter by gene ID (lnc1)
 # set gene id
@@ -125,7 +119,8 @@ readr::write_csv(fpkm_tb_filt,
 purrr::map(c("Fugaku", "Veselovska"), function(experiment_name){
   
   # visualize
-  ggplot(fpkm_tb_filt %>% dplyr::filter(str_detect(experiment, experiment_name)), aes(x = stage_clean, y = avg_fpkm, fill = stage)) + 
+  barplot_viridis <- 
+    ggplot(fpkm_tb_filt %>% dplyr::filter(str_detect(experiment, experiment_name)), aes(x = stage_clean, y = avg_fpkm, fill = stage)) + 
     geom_bar(stat = "identity") +
     # geom_errorbar(aes(ymin = avg_fpkm - SD, ymax = avg_fpkm + SD), width = 0.2) +
     # geom_errorbar(aes(ymin = avg_fpkm - SE, ymax = avg_fpkm + SE), width = 0.2) +

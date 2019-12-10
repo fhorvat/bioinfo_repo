@@ -50,14 +50,14 @@ mapped_path <- file.path("/common/WORK/fhorvat/Projekti/Svoboda/accessory_data_s
 exons_gr <- readRDS(file = exons_path)
 
 # get list of bam files
-bam_path <- list.files(path = mapped_path, pattern = "*.total.bam$|*.genome.Aligned.sortedByCoord.out.bam$", full.names = T)
+bam_path <- list.files(path = mapped_path, pattern = "*.total.bam$|*.genome.Aligned.sortedByCoord.out.bam$|*.bam$", full.names = T)
 
 ######################################################## MAIN CODE
 ### get pairing design of an experiment
 # get bam names
 bam_names <- 
   basename(bam_path) %>% 
-  str_remove(., "\\.total\\.bam|\\.genome\\.Aligned\\.sortedByCoord\\.out\\.bam$")
+  str_remove(., "\\.total\\.bam|\\.genome\\.Aligned\\.sortedByCoord\\.out\\.bam$|\\.bam$")
 
 # get pairing
 pairing <- 
