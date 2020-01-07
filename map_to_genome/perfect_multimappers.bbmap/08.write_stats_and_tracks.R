@@ -56,7 +56,6 @@ tracks_tbl <-
                              yes = str_c("track type=bigWig name=\"", bw_name, "\" bigDataUrl=\"", URL, "\""),
                              no = str_c("track type=bam name=\"", bam_name, "\" bigDataUrl=\"", URL, "\""))) %>%
   dplyr::select(-c(bw_name, bam_name)) %>%
-  dplyr::select(-c(bw_name, bam_name)) %>%
   tidyr::unite(scale_type, scaled, file_type, sep = ".")
 
 # create table with all possible columns
