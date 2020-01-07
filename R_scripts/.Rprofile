@@ -24,6 +24,9 @@ library(ggplot2)
 ### set new hidden enviorment
 .env <- new.env()
 
+### adds variable called "pwd" to new enviorment
+.env$pwd <- getwd()
+
 ### add functions to new enviorment
 ## sets screen to max. width
 .env$wideScreen <- function(howWide = Sys.getenv("COLUMNS")) {
