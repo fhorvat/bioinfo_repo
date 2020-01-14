@@ -25,6 +25,7 @@ SCRIPT_PARAMS="-T $THREADS \
 -M \
 -O \
 --fraction"
+# -p 
 
 # ----------------Commands------------------- #
 # run script

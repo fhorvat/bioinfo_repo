@@ -1,29 +1,35 @@
 #!/bin/bash
 # ----------------QSUB Parameters----------------- #
 #PBS -q MASTER
-#PBS -l select=ncpus=2:mem=10g
+#PBS -l select=ncpus=6:mem=30g
 #PBS -M fihorvat@gmail.com
 #PBS -m n
-#PBS -N bbduk
-#PBS -J 0-4
+#PBS -N pbs.01.trim_adapters.Truseq.bbduk
+#PBS -J 0-10
+#PBS -j oe
 cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
-ADAPTER=/common/WORK/fhorvat/Projekti/Svoboda/scripts/trim_fastq/adapter_trimming/Illumina_TruSeq_Small_RNA.fa 
+THREADS=6
 
 IN_DIR=../Links
-IN_SEQ=($IN_DIR/*.fastq.gz)
+IN_SEQ=($(find $IN_DIR -type f -name "*.txt.gz"))
 FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
-BASE=${FILE##*$IN_DIR/}
-BASE=${BASE%%.fastq.gz}
+BASE=${FILE#${IN_DIR}/}
+BASE=${BASE%.txt.gz}
+
+ADAPTER=/common/WORK/fhorvat/Projekti/Svoboda/scripts/trim_fastq/adapter_trimming/Illumina_TruSeq_Small_RNA.fa
 
 BBDUK_PAR="overwrite=t \
+ktrim=r \
 k=22 \
+rcomp=t \
 mink=12 \
 hdist=1 \
-threads=1 \
+minoverlap=8 \
 minlength=15 \
-minoverlap=8"
+threads=$THREADS"
 
 # ----------------Commands------------------- #
-bbduk2.sh in=$FILE rref=$ADAPTER out=${BASE}_cl.fastq.gz stats=${BASE}_cl.stats $BBDUK_PAR 2> ${BASE}_cl.log
+# right trim
+bbduk.sh in=$FILE out=${BASE}.txt.gz ref=$ADAPTER stats=${BASE}.stats $BBDUK_PAR
