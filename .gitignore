@@ -2,8 +2,8 @@
 /vfranke/*
 
 # exclude tutorial
-./01.git_tutorial.sh
-./02.rsync.sh
+01.git_tutorial.sh
+02.rsync.sh
 
 # exclude scripts in dir tree
-./scripts_in_dirs.tar.gz
+scripts_in_dirs.tar.gz
