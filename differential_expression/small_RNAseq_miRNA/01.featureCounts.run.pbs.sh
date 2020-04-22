@@ -22,6 +22,7 @@ IN_SEQ=`printf "%s " ${IN_SEQ[@]}`
 # script parameters
 SCRIPT_PARAMS="-T $THREADS \
 -F GTF \
+--fracOverlap 0.75 \
 -f \
 -t miRNA \
 -g Name \

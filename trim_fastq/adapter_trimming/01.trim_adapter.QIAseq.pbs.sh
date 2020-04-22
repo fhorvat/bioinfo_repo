@@ -4,8 +4,8 @@
 #PBS -l select=ncpus=6:mem=30g
 #PBS -M fihorvat@gmail.com
 #PBS -m n
-#PBS -N pbs.01.trim_adapters.Truseq.bbduk
-#PBS -J 0-10
+#PBS -N pbs.01.trim_adapters.bbduk
+#PBS -J 0-5
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
@@ -13,16 +13,15 @@ cd $PBS_O_WORKDIR
 THREADS=6
 
 IN_DIR=../Links
-IN_SEQ=($(find $IN_DIR -name "*.txt.gz"))
+IN_SEQ=($IN_DIR/*.txt.gz)
 FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${IN_DIR}/}
 BASE=${BASE%.txt.gz}
 
-ADAPTER=/common/WORK/fhorvat/Projekti/Svoboda/scripts/trim_fastq/adapter_trimming/Illumina_TruSeq_Small_RNA.fa
-
+ADAPTER=/common/WORK/fhorvat/Projekti/Svoboda/scripts/trim_fastq/adapter_trimming/QIAseq_miRNA_NGS_3prime_adapter.fa
 BBDUK_PAR="overwrite=t \
 ktrim=r \
-k=22 \
+k=17 \
 rcomp=t \
 mink=12 \
 hdist=1 \

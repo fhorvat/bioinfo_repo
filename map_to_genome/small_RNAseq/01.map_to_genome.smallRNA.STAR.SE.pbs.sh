@@ -5,7 +5,7 @@
 #PBS -m n
 #PBS -N pbs.01.map_to_genome.STAR
 #PBS -l select=ncpus=12:mem=60g
-#PBS -J 0-9
+#PBS -J 0-21
 #PBS -j oe
 cd $PBS_O_WORKDIR
 

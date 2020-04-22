@@ -29,7 +29,10 @@ grouping_variables=\'$GROUPING_VARIABLES\''\n'\
 results_groups=\'$RESULTS_GROUPS\''\n'\
 exploratory_analysis=\'$EXPLORATORY_ANALYSIS\''\n'\
 interactive_plots=\'$INTERACTIVE_PLOTS\''\n'\
-counts_path=\'$COUNTS_PATH\''\n'
+counts_path=\'$COUNTS_PATH\''\n'\
+'\n'\
+'results_groups <- str_split(results_groups, pattern = " ") %>% unlist()''\n'\
+'grouping_variables <- str_split(grouping_variables, pattern = " ") %>% unlist()''\n'
 
 # ----------------Commands------------------- #
 # run script
