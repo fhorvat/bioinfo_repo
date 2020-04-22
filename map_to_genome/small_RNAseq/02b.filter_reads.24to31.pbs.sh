@@ -6,7 +6,7 @@
 #PBS -N pbs.02b.filter_bams.24to31
 #PBS -l select=ncpus=1:mem=30g
 #PBS -j oe
-#PBS -J 0-9
+#PBS -J 0-21
 cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #

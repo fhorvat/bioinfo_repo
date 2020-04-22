@@ -4,8 +4,9 @@
 SCRIPTS=($(find . -name "0*.sh" -or -name "0*.R" | grep -v "00b.change_scripts.sh"))
 
 # variables to change in scripts
-EXPERIMENT="CNOT6L"
-EXPERIMENT_NAME="CNOT6L"
+EXPERIMENT=${PWD%/Data*}
+EXPERIMENT=${EXPERIMENT##/*/}
+EXPERIMENT_NAME=${EXPERIMENT%_*_*}
 
 GENOME_PATH=/common/DB/genome_reference
 GENOME_DIR=${GENOME_PATH}/mouse/mm10.GRCm38.GCA_000001635.2

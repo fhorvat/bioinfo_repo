@@ -66,8 +66,6 @@ exploratory_analysis <- args$exploratory_analysis
 interactive_plots <- args$interactive_plots
 counts_path <- args$counts_path
 
-# results_groups <- str_split(results_groups, pattern = " ") %>% unlist()
-
 # create and set outpath
 outpath <- file.path(getwd(), str_c("results.", features_name))
 dir.create(outpath)
@@ -113,6 +111,7 @@ features_tb <-
 sample_table_dds <-
   sample_table %>%
   as.data.table(.) %>%
+  .[sample_id %in% str_remove_all(colnames(counts_tb), "\\.24to31nt|\\.21to23nt|\\.genome\\.Aligned\\.sortedByCoord\\.out\\.bam|\\.total\\.bam|\\.bam$"), ] %>%
   .[, c("sample_id", grouping_variables), with = F] %>%
   .[, grouped_variables := do.call(str_c, c(.SD, sep = "_")), .SDcols = grouping_variables] %>%
   as.data.frame(.) %>%

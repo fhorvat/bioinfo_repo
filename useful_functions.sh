@@ -72,3 +72,7 @@ vprnt () {
     esac
 }
 
+# prints csv in tidy way
+tcsv () {
+   column -s, -t < $1 | head
+}

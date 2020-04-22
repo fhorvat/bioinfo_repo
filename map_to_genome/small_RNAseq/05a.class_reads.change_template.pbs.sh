@@ -5,7 +5,7 @@
 #PBS -m n
 #PBS -N pbs.05a.0.class_reads
 #PBS -l select=ncpus=1:mem=20g
-#PBS -J 0-15
+#PBS -J 0-65
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
@@ -15,7 +15,7 @@ IN_PATH=${PWD}
 TEMPLATE=${IN_PATH}/05b.class_reads.template.R
 SCRIPT_NAME=Rscript.${PBS_ARRAY_INDEX}.${TEMPLATE#${IN_PATH}/}
 
-FILE=($IN_PATH/*.21to23nt.bam)
+FILE=($IN_PATH/*.bam)
 BAM=${FILE[$PBS_ARRAY_INDEX]}
 BAM_NAME=`basename $BAM`
 BAM_NAME=${BAM_NAME%.bam}

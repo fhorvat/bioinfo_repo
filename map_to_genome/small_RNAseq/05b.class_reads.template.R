@@ -190,7 +190,7 @@ rmsk_gr <-
 # prepare exons
 exons_gr %<>%
   as.data.frame(.) %>%
-  tibble::as.tibble(.) %>%
+  tibble::as_tibble(.) %>%
   dplyr::left_join(., genes_info %>% dplyr::select(gene_id, gene_biotype), by = "gene_id") %>%
   dplyr::select(seqnames:strand, gene_id, gene_biotype) %>%
   dplyr::mutate(gene_biotype =

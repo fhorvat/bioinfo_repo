@@ -28,7 +28,10 @@ features_coordinates=\'$FEATURES_COORDINATES\''\n'\
 features_name=\'$FEATURES_NAME\''\n'\
 genes_info_path=\'$GENES_INFO_PATH\''\n'\
 grouping_variables=\'$GROUPING_VARIABLES\''\n'\
-counts_path=\'$COUNTS_PATH\''\n'
+counts_path=\'$COUNTS_PATH\''\n'\
+'\n'\
+'results_groups <- str_split(results_groups, pattern = " ") %>% unlist()''\n'\
+'grouping_variables <- str_split(grouping_variables, pattern = " ") %>% unlist()''\n'
 
 # ----------------Commands------------------- #
 # run script
