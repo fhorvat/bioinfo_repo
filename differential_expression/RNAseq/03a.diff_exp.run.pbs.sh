@@ -32,11 +32,12 @@ grouping_variables=\'$GROUPING_VARIABLES\''\n'\
 results_groups=\'$RESULTS_GROUPS\''\n'\
 protein_coding_only=\'$PROTEIN_CODING_ONLY\''\n'\
 exploratory_analysis=\'$EXPLORATORY_ANALYSIS\''\n'\
+vulcano_plots=\'$VULCANO_PLOTS\''\n'\
 interactive_plots=\'$INTERACTIVE_PLOTS\''\n'\
 counts_path=\'$COUNTS_PATH\''\n'\
-lfc_cut=\'$LFC_CUT\''\n'\
-padj_cut=\'$PADJ_CUT\''\n'\
-'\n'\
+lfc_cut='as.numeric('\'$LFC_CUT\'')\n'\
+padj_cut='as.numeric('\'$PADJ_CUT\'')\n'\
+fpkm_cut='as.numeric('\'$FPKM_CUT\'')\n'\
 'results_groups <- str_split(results_groups, pattern = " ") %>% unlist()''\n'\
 'grouping_variables <- str_split(grouping_variables, pattern = " ") %>% unlist()''\n'
 
@@ -55,7 +56,9 @@ Rscript $SCRIPT \
 --results_groups $RESULTS_GROUPS \
 --protein_coding_only $PROTEIN_CODING_ONLY \
 --exploratory_analysis $EXPLORATORY_ANALYSIS \
+--vulcano_plots $VULCANO_PLOTS \
 --interactive_plots $INTERACTIVE_PLOTS \
 --counts_path $COUNTS_PATH \
 --lfc_cut $LFC_CUT \
---padj_cut $PADJ_CUT
+--padj_cut $PADJ_CUT \
+--fpkm_cut $FPKM_CUT
