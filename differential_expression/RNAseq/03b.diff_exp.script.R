@@ -30,6 +30,8 @@ library(plotly)
 library(openxlsx)
 library(viridis)
 library(dendsort)
+library(VennDiagram)
+library(geneplotter)
 
 ######################################################## SOURCE FILES
 
@@ -65,11 +67,12 @@ grouping_variables <- args$grouping_variables
 results_groups <- args$results_groups
 protein_coding_only <- args$protein_coding_only
 exploratory_analysis <- args$exploratory_analysis
+vulcano_plots <- args$vulcano_plots
 interactive_plots <- args$interactive_plots
 counts_path <- args$counts_path
 lfc_cut <- as.numeric(args$lfc_cut)
 padj_cut <- as.numeric(args$padj_cut)
-
+fpkm_cut <- as.numeric(args$fpkm_cut)
 
 # create and set outpath
 outpath <- file.path(getwd(), str_c("results.", features_name))
@@ -221,7 +224,7 @@ if(exploratory_analysis == "yes"){
     # color = first grouping variable
     pca_plot <-
       pca_plot +
-      geom_point(aes_string(color = grouping_variables[1], fill = grouping_variables[1]), size = 5, shape = 21) +
+      geom_point(aes_string(color = grouping_variables[1], fill = grouping_variables[1]), size = 7.5, shape = 21) +
       guides(color = guide_legend(override.aes = list(shape = 23, size = 5)))
     
   }else{
@@ -235,35 +238,42 @@ if(exploratory_analysis == "yes"){
     
   }
   
-  # add labels, themes and save plot
+  # add themes and save plot without labels
   pca_plot <-
     pca_plot +
-    xlab(paste0("PC1: ", round(percentVar[1] * 100), "% variance")) +
-    ylab(paste0("PC2: ", round(percentVar[2] * 100), "% variance")) +
     theme_bw() +
-    theme(axis.title.x = element_text(size = 15, vjust = - 0.2),
-          axis.title.y = element_text(size = 15, vjust = - 0.2),
-          axis.text.x = element_text(size = 15),
+    theme(axis.text.x = element_text(size = 15),
           axis.text.y = element_text(size = 15),
           panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank())
+          panel.grid.minor = element_blank()) +
+    theme(legend.title = element_blank()) +
+    theme(legend.position = "none") +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank())
   
   # save plot
   ggsave(filename = file.path(outpath, str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
                                              "expl_plot", "PCA.PC1_PC2", "rlog", str_c(grouping_variables, collapse = "_"),
                                              "png", sep = ".")),
-         plot = pca_plot, width = 12, height = 10)
+         plot = pca_plot, width = 10, height = 10)
   
   # add labels
   pca_plot <-
     pca_plot +
-    geom_label_repel(aes(label = sample_id), fontface = "bold", color = "black", box.padding = 0.35, point.padding = 0.5, segment.color = "grey50")
+    geom_label_repel(aes(label = sample_id),
+                     fontface = "bold", color = "black", box.padding = 0.35,
+                     point.padding = 0.5, segment.color = "grey50") +
+    xlab(paste0("PC1: ", round(percentVar[1] * 100), "% variance")) +
+    ylab(paste0("PC2: ", round(percentVar[2] * 100), "% variance")) +
+    theme(axis.title.x = element_text(size = 13),
+          axis.title.y = element_text(size = 13, angle = 90)) +
+    theme(legend.position = "bottom")
   
   # save labeled plot
   ggsave(filename = file.path(outpath, str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
                                              "expl_plot", "PCA.PC1_PC2", "rlog", str_c(grouping_variables, collapse = "_"),
                                              "labeled", "png", sep = ".")),
-         plot = pca_plot, width = 12, height = 10)
+         plot = pca_plot, width = 10, height = 10)
   
   
   ### distance heatmap
@@ -303,49 +313,49 @@ if(exploratory_analysis == "yes"){
                      width = 14)
   
   
-  ### FPKM heatmap
-  # log transformed FPKMs
-  fpkm_log_df <-
-    fpkm_tb %>%
-    dplyr::select(-coordinates) %>%
-    dplyr::select(gene_id, colnames(se_filt)) %>%
-    dplyr::filter_at(.vars = vars(starts_with("s_")), .vars_predicate = any_vars(. > 0.5)) %>%
-    dplyr::mutate_at(.vars = vars(starts_with("s_")), .funs = list(~ log2(. + 0.1))) %>%
-    dplyr::filter(gene_id %in% protein_genes) %>%
-    as.data.frame(.) %>%
-    tibble::column_to_rownames(., var = "gene_id")
-  
-  # matrix for heatmap
-  heatmap_matrix <- as.matrix(fpkm_log_df)
-  rownames(heatmap_matrix) <- NULL
-  
-  # annotation data.frame
-  annotation_df <-
-    sample_table_dds %>%
-    dplyr::select(-c(sample_id, grouped_variables))
-  
-  # sort rows and columns
-  mat_cluster_cols <- sort_hclust(hclust(dist(t(heatmap_matrix))))
-  mat_cluster_rows <- sort_hclust(hclust(dist(heatmap_matrix)))
-  
-  # plot
-  pheatmap::pheatmap(heatmap_matrix,
-                     col = viridis(10),
-                     annotation_col = annotation_df,
-                     cluster_cols = mat_cluster_cols,
-                     cluster_rows = mat_cluster_rows,
-                     file = file.path(outpath,
-                                      str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
-                                            "expl_plot", "heatmap_FPKM", "log2", str_c(grouping_variables, collapse = "_"),
-                                            "png", sep = ".")),
-                     height = 15,
-                     width = 10)
+  # ### FPKM heatmap
+  # # log transformed FPKMs
+  # fpkm_log_df <-
+  #   fpkm_tb %>%
+  #   dplyr::select(-coordinates) %>%
+  #   dplyr::select(gene_id, colnames(se_filt)) %>%
+  #   dplyr::filter_at(.vars = vars(starts_with("s_")), .vars_predicate = any_vars(. > 0.5)) %>%
+  #   dplyr::mutate_at(.vars = vars(starts_with("s_")), .funs = list(~ log2(. + 0.1))) %>%
+  #   dplyr::filter(gene_id %in% protein_genes) %>%
+  #   as.data.frame(.) %>%
+  #   tibble::column_to_rownames(., var = "gene_id")
+  #
+  # # matrix for heatmap
+  # heatmap_matrix <- as.matrix(fpkm_log_df)
+  # rownames(heatmap_matrix) <- NULL
+  #
+  # # annotation data.frame
+  # annotation_df <-
+  #   sample_table_dds %>%
+  #   dplyr::select(-c(sample_id, grouped_variables))
+  #
+  # # sort rows and columns
+  # mat_cluster_cols <- sort_hclust(hclust(dist(t(heatmap_matrix))))
+  # mat_cluster_rows <- sort_hclust(hclust(dist(heatmap_matrix)))
+  #
+  # # plot
+  # pheatmap::pheatmap(heatmap_matrix,
+  #                    col = viridis(10),
+  #                    annotation_col = annotation_df,
+  #                    cluster_cols = mat_cluster_cols,
+  #                    cluster_rows = mat_cluster_rows,
+  #                    file = file.path(outpath,
+  #                                     str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
+  #                                           "expl_plot", "heatmap_FPKM", "log2", str_c(grouping_variables, collapse = "_"),
+  #                                           "png", sep = ".")),
+  #                    height = 15,
+  #                    width = 10)
   
   
   ### FPKM correlation
   # FPKM values
-  fpkm_corr_df <- 
-    fpkm_tb %>% 
+  fpkm_corr_df <-
+    fpkm_tb %>%
     dplyr::select(colnames(se_filt))
   
   ### correlation matrix plot
@@ -363,18 +373,18 @@ if(exploratory_analysis == "yes"){
   }
   
   # add themes
-  cor_pairs <- 
-    cor_pairs + 
+  cor_pairs <-
+    cor_pairs +
     theme_bw() +
     theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(), 
-          axis.text.x = element_text(angle = 90, hjust = 1)) 
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1))
   
-    # save plot
-  png(filename = file.path(outpath, 
+  # save plot
+  png(filename = file.path(outpath,
                            str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
                                  "expl_plot", "correlation_FPKM",
-                                 "png", sep = ".")), 
+                                 "png", sep = ".")),
       width = 15, height = 15, units = "in", res = 300)
   print(cor_pairs)
   dev.off()
@@ -384,11 +394,12 @@ if(exploratory_analysis == "yes"){
 
 ####### DIFFERENTIAL EXPRESSION ANALYSIS
 # check whether to do diff. exp. analysis
-if(results_groups != "NULL"){
+if(results_groups != "no"){
   
   ### run main DESeq2 function
   # DESeq
   dds_deseq <- DESeq(dds)
+  
   
   ### shrink results
   # create list of results
@@ -429,249 +440,344 @@ if(results_groups != "NULL"){
     set_names(., results_groups)
   
   
-  ### write results
-  # create results workbooks
-  wb_all <- openxlsx::createWorkbook()
-  wb_significant <- openxlsx::createWorkbook()
-  
-  # loop through results
-  invisible(purrr::map(results_groups, function(result){
+  ### get significant results
+  results_significant_list <- invisible(purrr::map(results_groups, function(result){
     
-    ## prepare results
-    # get results table
-    results_df <-
-      results_list[[result]] %>%
-      dplyr::left_join(., features_tb, by = "gene_id")
-    
-    # shape result
-    result_clean <-
-      str_split(result, pattern = ",") %>%
-      unlist(.)
-    
-    
-    ## write all results
-    # add worksheet and write data
-    openxlsx::addWorksheet(wb = wb_all, sheetName = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(., 1, 31))
-    openxlsx::writeData(wb = wb_all, sheet = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(., 1, 31), x = results_df)
-    
-    
-    ## write only significant results, padj <= 0.1
     # filter table
     results_df_sign <-
-      results_df %>%
-      dplyr::filter(padj <= 0.1)
+      results_list[[result]]  %>%
+      dplyr::filter(padj <= padj_cut) %>% 
+      dplyr::filter(abs(log2FoldChange) >= lfc_cut) %>% 
+      dplyr::filter_at(.vars = vars(matches("\\.FPKM")), any_vars(. > fpkm_cut))
     
-    # check and write
-    if(nrow(results_df_sign) > 0){
-      
-      # add worksheet and write data
-      openxlsx::addWorksheet(wb = wb_significant, sheetName = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(., 1, 31))
-      openxlsx::writeData(wb = wb_significant, sheet = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(., 1, 31), x = results_df_sign)
-      
-    }
+    # return
+    return(results_df_sign)
     
-  }))
+  })) %>% 
+    set_names(., results_groups)
   
-  # save workbooks to outdir
-  openxlsx::saveWorkbook(wb = wb_all,
-                         file = file.path(outpath, str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
-                                                         "diffExp.DESeq2", str_c(grouping_variables, collapse = "_"),
-                                                         "all_results.xlsx", sep = ".")),
-                         overwrite = TRUE)
-  openxlsx::saveWorkbook(wb = wb_significant,
-                         file = file.path(outpath, str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
-                                                         "diffExp.DESeq2", str_c(grouping_variables, collapse = "_"),
-                                                         "significant_results.xlsx", sep = ".")),
-                         overwrite = TRUE)
+  
+  ### write results
+  if(TRUE){
+    
+    # create results workbooks
+    wb_all <- openxlsx::createWorkbook()
+    wb_significant <- openxlsx::createWorkbook()
+    
+    # loop through results
+    invisible(purrr::map(results_groups, function(result){
+      
+      ## prepare results
+      # get results table
+      results_df <- results_list[[result]] 
+      
+      # shape result
+      result_clean <-
+        str_split(result, pattern = ",") %>%
+        unlist(.)
+      
+      
+      ## write all results
+      # add worksheet and write data
+      openxlsx::addWorksheet(wb = wb_all, sheetName = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(., 1, 31))
+      openxlsx::writeData(wb = wb_all, sheet = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(., 1, 31), x = results_df)
+      
+      
+      ## write only significant results 
+      # filter table
+      results_df_sign <- results_significant_list[[result]]
+      
+      # check and write
+      if(nrow(results_df_sign) > 0){
+        
+        # add worksheet and write data
+        openxlsx::addWorksheet(wb = wb_significant, sheetName = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(., 1, 31))
+        openxlsx::writeData(wb = wb_significant, sheet = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(., 1, 31), x = results_df_sign)
+        
+      }
+      
+    }))
+    
+    # save workbooks to outdir
+    openxlsx::saveWorkbook(wb = wb_all,
+                           file = file.path(outpath, str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
+                                                           "diffExp.DESeq2", str_c(grouping_variables, collapse = "_"),
+                                                           "all_results.xlsx", sep = ".")),
+                           overwrite = TRUE)
+    openxlsx::saveWorkbook(wb = wb_significant,
+                           file = file.path(outpath, str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
+                                                           "diffExp.DESeq2", str_c(grouping_variables, collapse = "_"),
+                                                           "significant_results.xlsx", sep = ".")),
+                           overwrite = TRUE)
+    
+  }
+  
+  
+  ### create Venn-diagrams
+  if(TRUE){
+    
+    ## get list of upregulated genes
+    upregulated_list <- invisible(purrr::map(results_groups, function(result){
+      
+      # get significant results
+      results_df_sign <- 
+        results_significant_list[[result]] %>% 
+        dplyr::filter(log2FoldChange > 0) %$%
+        gene_id
+      
+    })) %>% 
+      set_names(., results_groups)
+    
+    # plot 
+    png(filename = file.path(outpath,
+                             str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
+                                   "plot", "Venn_up", "DESeq2", str_c(grouping_variables, collapse = "_"),
+                                   "png", sep = ".")), 
+        width = 1000, height = 1000)
+    venn.plot <- venn.diagram(upregulated_list, 
+                              NULL, 
+                              fill = gg_color_hue(length(upregulated_list)), 
+                              alpha = rep(0.4, length(upregulated_list)), 
+                              cex = 2, 
+                              cat.fontface = 4, 
+                              cat.cex = 1.5,
+                              category.names = str_replace(names(upregulated_list), ",", "\n vs. \n"),
+                              main.cex = 2)
+    grid.newpage()
+    venn.plot
+    grid.draw(venn.plot)
+    dev.off()
+    
+    
+    ## get list of downregulated genes
+    downregulated_list <- invisible(purrr::map(results_groups, function(result){
+      
+      # get significant results
+      results_df_sign <- 
+        results_significant_list[[result]] %>% 
+        dplyr::filter(log2FoldChange < 0) %$%
+        gene_id
+      
+    })) %>% 
+      set_names(., results_groups)
+    
+    # plot 
+    png(filename = file.path(outpath,
+                             str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
+                                   "plot", "Venn_down", "DESeq2", str_c(grouping_variables, collapse = "_"),
+                                   "png", sep = ".")), 
+        width = 1000, height = 1000)
+    venn.plot <- venn.diagram(downregulated_list, 
+                              NULL, 
+                              fill = gg_color_hue(length(downregulated_list)), 
+                              alpha = rep(0.4, length(downregulated_list)), 
+                              cex = 2, 
+                              cat.fontface = 4, 
+                              cat.cex = 1.5,
+                              category.names = str_replace(names(downregulated_list), ",", "\n vs. \n"),
+                              main.cex = 2)
+    grid.newpage()
+    venn.plot
+    grid.draw(venn.plot)
+    dev.off()
+    
+  }
   
   
   ### create static MA plots
-  # get axis limits
-  results_limits <-
-    results_list %>%
-    dplyr::bind_rows(.) %>%
-    dplyr::summarise(x_limit = baseMean %>% na.omit(.) %>% abs(.) %>% max(.) %>% ceiling(.),
-                     y_limit = log2FoldChange %>% na.omit(.) %>% abs(.) %>% max(.) %>% ceiling(.))
-  
-  # loop through results
-  invisible(purrr::map(results_groups, function(result){
+  if(TRUE){
     
-    ## prepare results
-    # get results table
-    results_df <- results_list[[result]]
+    # get axis limits
+    results_limits <-
+      results_list %>%
+      dplyr::bind_rows(.) %>%
+      dplyr::summarise(x_limit = baseMean %>% na.omit(.) %>% abs(.) %>% max(.) %>% ceiling(.),
+                       y_limit = log2FoldChange %>% na.omit(.) %>% abs(.) %>% max(.) %>% ceiling(.))
     
-    # shape result
-    result_clean <-
-      str_split(result, pattern = ",") %>%
-      unlist(.)
+    # loop through results
+    invisible(purrr::map(results_groups, function(result){
+      
+      ## prepare results
+      # get results table
+      results_df <- results_list[[result]]
+      
+      # shape result
+      result_clean <-
+        str_split(result, pattern = ",") %>%
+        unlist(.)
+      
+      # significant results
+      results_df_sign <- 
+        results_significant_list[[result]] %>%
+        dplyr::mutate(regulation = ifelse(log2FoldChange > 0, "up", "down")) %>% 
+        dplyr::select(gene_id, regulation)
+      
+      
+      ## MA plot
+      # data for plot
+      plot_df <-
+        results_df %>%
+        dplyr::select(mean = baseMean, lfc = log2FoldChange, padj, gene_id, gene_name) %>%
+        dplyr::left_join(., results_df_sign, by = "gene_id") %>% 
+        dplyr::mutate(padj = replace(padj, is.na(padj), 1),
+                      padj = replace(padj, padj == 0, .Machine$double.xmin)) %>% 
+        dplyr::mutate(regulation = replace(regulation, is.na(regulation), "no"),
+                      regulation = factor(regulation, levels = c("no", "up", "down"))) %>%
+        dplyr::arrange(regulation)
+      
+      # plot
+      ma_plot <-
+        ggplot() +
+        geom_point(data = plot_df, aes(x = mean, y = lfc, color = regulation, alpha = regulation), size = 5, shape = 20) +
+        scale_x_log10(limits = c(0.01, results_limits$x_limit),
+                      breaks = scales::trans_breaks("log10", function(x) 10^x),
+                      labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+        scale_y_continuous(limits = c(-results_limits$y_limit, results_limits$y_limit),
+                           breaks = c(-results_limits$y_limit:results_limits$y_limit)) +
+        scale_colour_manual(labels = c(no = "not significant", down = "downregulated", up = "upregulated"),
+                            values = c(no = "gray50", up = "red2", down = "#1a75ff")) +
+        scale_alpha_manual(values = c(no = 0.5, down = 1, up = 1)) +
+        theme_bw() +
+        theme(axis.text.x = element_text(size = 15),
+              axis.text.y = element_text(size = 15),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank()) +
+        theme(legend.title = element_blank()) +
+        theme(legend.position = "none") +
+        theme(axis.title.x = element_blank(),
+              axis.title.y = element_blank())
+      
+      # save plot
+      ggsave(filename = file.path(outpath,
+                                  str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
+                                        "plot", "MA", "DESeq2", str_c(grouping_variables, collapse = "_"),
+                                        str_c(result_clean[1], "_vs_", result_clean[2]),
+                                        "png", sep = ".")),
+             plot = ma_plot, width = 10, height = 10)
+      
+      
+      ### add gene names as labels
+      # filter data
+      plot_df_labels <-
+        plot_df %>%
+        dplyr::filter(regulation != "no") %>% 
+        dplyr::mutate(gene_name = ifelse(is.na(gene_name), gene_id, gene_name))
+      
+      # annotation table
+      annotations <- tibble(xpos = Inf,
+                            ypos = -Inf,
+                            annotateText = str_c("label cutoff: ",
+                                                 "p-adjusted <= ", padj_cut,
+                                                 ", log2FC >= ", lfc_cut, 
+                                                 ", FPKM >= ", fpkm_cut))
+      
+      # add labels
+      ma_plot_labeled <-
+        ma_plot +
+        geom_text(data = plot_df_labels,
+                  aes(x = mean, y = lfc, label = gene_name),
+                  check_overlap = TRUE, size = 3, hjust = 0, vjust = 1.5,
+                  colour = "black", fontface = "plain") +
+        geom_text(data = annotations, aes(x = xpos, y = ypos, label = annotateText),
+                  colour = "black", fontface = "italic", size = 2.5,
+                  hjust = 1.03, vjust = -0.5) +
+        guides(color = guide_legend(override.aes = list(shape = 23, size = 5, fill = c("gray50", "red2", "#1a75ff"))),
+               alpha = F) +
+        xlab("Mean expression") +
+        ylab(str_c("log2 fold change: ", result_clean[1], " / ", result_clean[2], "\n") %>% str_replace_all(., "_", " ")) +
+        theme(axis.title.x = element_text(size = 13),
+              axis.title.y = element_text(size = 13, angle = 90)) +
+        theme(legend.position = "bottom")
+      
+      # save plot
+      ggsave(filename = file.path(outpath,
+                                  str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
+                                        "plot", "MA", "DESeq2", str_c(grouping_variables, collapse = "_"),
+                                        "labeled",
+                                        str_c(result_clean[1], "_vs_", result_clean[2]),
+                                        "png", sep = ".")),
+             plot = ma_plot_labeled, width = 10, height = 10)
+      
+    }))
     
-    
-    ## MA plot
-    # data for plot
-    plot_df <-
-      results_df %>%
-      dplyr::select(mean = baseMean, lfc = log2FoldChange, padj, gene_id, gene_name) %>%
-      dplyr::mutate(padj = replace(padj, is.na(padj), 1),
-                    padj = replace(padj, padj == 0, .Machine$double.xmin),
-                    sign = ifelse(padj < 0.1, "yes", "no"),
-                    regulation = ifelse(lfc > 0, "up", "down"),
-                    regulation = replace(regulation, padj > 0.1, "no"),
-                    regulation = factor(regulation, levels = c("no", "up", "down"))) %>%
-      dplyr::arrange(regulation)
-    
-    # plot
-    ma_plot <-
-      ggplot() +
-      geom_point(data = plot_df, aes(x = mean, y = lfc, color = regulation, alpha = regulation), size = 2.5, shape = 20) +
-      scale_x_log10(limits = c(0.01, results_limits$x_limit),
-                    breaks = scales::trans_breaks("log10", function(x) 10^x),
-                    labels = scales::trans_format("log10", scales::math_format(10^.x))) +
-      scale_y_continuous(limits = c(-results_limits$y_limit, results_limits$y_limit),
-                         breaks = c(-results_limits$y_limit:results_limits$y_limit)) +
-      scale_colour_manual(labels = c(no = "not significant", down = "downregulated", up = "upregulated"),
-                          values = c(no = "gray50", up = "red2", down = "#1a75ff")) +
-      scale_alpha_manual(values = c(no = 0.5, down = 1, up = 1)) +
-      guides(color = guide_legend(override.aes = list(shape = 23, size = 5, fill = c("gray50", "red2", "#1a75ff"))),
-             alpha = F) +
-      xlab("mean expression") +
-      ylab(str_c("log2 fold change: ", result_clean[1], " / ", result_clean[2], "\n") %>% str_replace_all(., "_", " ")) +
-      theme_bw() +
-      theme(axis.text.x = element_text(size = 15),
-            axis.text.y = element_text(size = 15),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank()) +
-      theme(axis.title.x = element_text(size = 13),
-            axis.title.y = element_text(size = 13)) +
-      theme(legend.title = element_blank())
-    
-    # # turns off axis titles and legend
-    # ma_plot <-
-    #   ma_plot +
-    #   theme(legend.position = "none") +
-    #   theme(axis.title.x = element_blank(),
-    #         axis.title.y = element_blank())
-    
-    # save plot
-    ggsave(filename = file.path(outpath,
-                                str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
-                                      "plot", "MA", "DESeq2", str_c(grouping_variables, collapse = "_"),
-                                      str_c(result_clean[1], "_vs_", result_clean[2]),
-                                      "png", sep = ".")),
-           plot = ma_plot, width = 12, height = 10)
-    
-    
-    ### add gene names as labels
-    # filter data
-    plot_df_labels <-
-      plot_df %>%
-      dplyr::mutate(padj_sign = ifelse(padj <= padj_cut, T, F),
-                    lfc_sign = ifelse((abs(lfc) >= lfc_cut), T, F)) %>%
-      dplyr::filter(padj_sign & lfc_sign)
-    
-    # annotation table
-    annotations <- tibble(xpos = Inf,
-                          ypos = -Inf,
-                          annotateText = str_c("label cutoff: ",
-                                               "p-adjusted <= ", padj_cut,
-                                               ", log2FC >= ", lfc_cut))
-    
-    # add labels
-    ma_plot_labeled <-
-      ma_plot +
-      geom_text(data = plot_df_labels,
-                aes(x = mean, y = lfc, label = gene_name),
-                check_overlap = TRUE, size = 3, hjust = 0, vjust = 1.5,
-                colour = "black", fontface = "plain") +
-      geom_text(data = annotations, aes(x = xpos, y = ypos, label = annotateText),
-                colour = "black", fontface = "italic", size = 2.5,
-                hjust = 1.03, vjust = -0.5)
-    
-    
-    # save plot
-    ggsave(filename = file.path(outpath,
-                                str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
-                                      "plot", "MA", "DESeq2", str_c(grouping_variables, collapse = "_"),
-                                      "labeled",
-                                      str_c(result_clean[1], "_vs_", result_clean[2]),
-                                      "png", sep = ".")),
-           plot = ma_plot_labeled, width = 12, height = 10)
-    
-  }))
+  }
   
   
   ### create static Vulcano plots
-  # loop through results
-  invisible(purrr::map(results_groups, function(result){
+  if(vulcano_plots == "yes"){
     
-    ## prepare results
-    # get results table
-    results_df <- results_list[[result]]
+    # loop through results
+    invisible(purrr::map(results_groups, function(result){
+      
+      ## prepare results
+      # get results table
+      results_df <- results_list[[result]]
+      
+      # shape result
+      result_clean <-
+        str_split(result, pattern = ",") %>%
+        unlist(.)
+      
+      # data for plot
+      plot_df <-
+        results_df %>%
+        dplyr::select(lfc = log2FoldChange, padj, gene_id, gene_name) %>%
+        dplyr::mutate(padj = replace(padj, is.na(padj), 1),
+                      padj = replace(padj, padj == 0, .Machine$double.xmin)) %>% 
+        dplyr::mutate(padj_sign = ifelse(padj <= padj_cut, T, F),
+                      lfc_sign = ifelse((abs(lfc) > lfc_cut), T, F)) %>%
+        dplyr::mutate(regulation = "no",
+                      regulation = replace(regulation, lfc_sign, "fold_change"),
+                      regulation = replace(regulation, padj_sign, "p_value"),
+                      regulation = replace(regulation, lfc_sign & padj_sign, "p_value_fold_change"),
+                      regulation = factor(regulation, levels = c("no", "fold_change", "p_value", "p_value_fold_change"))) %>%
+        dplyr::arrange(regulation)
+      
+      # annotation table
+      annotations <- tibble(xpos = Inf,
+                            ypos = -Inf,
+                            annotateText = str_c("label cutoff: ",
+                                                 "p-adjusted <= ", padj_cut,
+                                                 ", log2FC >= ", lfc_cut))
+      
+      # plot
+      vulcano_plot <-
+        ggplot(plot_df, aes(x = lfc, y = -log10(padj), color = regulation)) +
+        geom_point(size = 1.5, shape = 19, alpha = 0.5) +
+        geom_vline(xintercept = c(-lfc_cut, lfc_cut), linetype = "longdash", colour = "black", size = 0.4) +
+        geom_hline(yintercept = -log10(padj_cut), linetype = "longdash", colour = "black", size = 0.4) +
+        geom_text(data = plot_df %>% dplyr::filter(padj_sign & lfc_sign),
+                  aes(label = plot_df %>% dplyr::filter(padj_sign & lfc_sign) %$% gene_name),
+                  check_overlap = TRUE, size = 3, hjust = 0, vjust = 1.5,
+                  colour = "black", fontface = "plain") +
+        geom_text(data = annotations, aes(x = xpos, y = ypos, label = annotateText),
+                  colour = "black", fontface = "italic", size = 2.5,
+                  hjust = 1.03, vjust = -0.5) +
+        scale_colour_manual(values = c(no = "gray30", fold_change = "forestgreen", p_value = "royalblue", p_value_fold_change = "red2")) +
+        scale_x_continuous(limits = c(-8, 8)) +
+        guides(color = F, alpha = F) +
+        xlab("log2FC") +
+        ylab("-log10 p-adjusted value") +
+        theme_bw(base_size = 24) +
+        theme(axis.title.x = element_blank(),
+              axis.title.y = element_blank()) +
+        theme(axis.text.x = element_text(size = 15),
+              axis.text.y = element_text(size = 15),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank()) +
+        theme(legend.position = "top")
+      
+      # save plot
+      ggsave(filename = file.path(outpath,
+                                  str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
+                                        "plot", "vulcano", "DESeq2", str_c(grouping_variables, collapse = "_"),
+                                        str_c(result_clean[1], "_vs_", result_clean[2]),
+                                        "png", sep = ".")),
+             plot = vulcano_plot, width = 10, height = 10)
+      
+    }))
     
-    # shape result
-    result_clean <-
-      str_split(result, pattern = ",") %>%
-      unlist(.)
-    
-    
-    ## Vulcano plot - static ggplot
-    # data for plot
-    plot_df <-
-      results_df %>%
-      dplyr::select(lfc = log2FoldChange, padj, gene_id, gene_name) %>%
-      dplyr::mutate(padj = replace(padj, is.na(padj), 1),
-                    padj = replace(padj, padj == 0, .Machine$double.xmin),
-                    padj_sign = ifelse(padj <= padj_cut, T, F),
-                    lfc_sign = ifelse((abs(lfc) > lfc_cut), T, F)) %>%
-      dplyr::mutate(regulation = "no",
-                    regulation = replace(regulation, lfc_sign, "fold_change"),
-                    regulation = replace(regulation, padj_sign, "p_value"),
-                    regulation = replace(regulation, lfc_sign & padj_sign, "p_value_fold_change"),
-                    regulation = factor(regulation, levels = c("no", "fold_change", "p_value", "p_value_fold_change"))) %>%
-      dplyr::arrange(regulation)
-    
-    # annotation table
-    annotations <- tibble(xpos = Inf,
-                          ypos = -Inf,
-                          annotateText = str_c("label cutoff: ",
-                                               "p-adjusted <= ", padj_cut,
-                                               ", log2FC >= ", lfc_cut))
-    
-    # plot
-    vulcano_plot <-
-      ggplot(plot_df, aes(x = lfc, y = -log10(padj), color = regulation)) +
-      geom_point(size = 1.5, shape = 19, alpha = 0.5) +
-      geom_vline(xintercept = c(-lfc_cut, lfc_cut), linetype = "longdash", colour = "black", size = 0.4) +
-      geom_hline(yintercept = -log10(padj_cut), linetype = "longdash", colour = "black", size = 0.4) +
-      geom_text(data = plot_df %>% dplyr::filter(padj_sign & lfc_sign),
-                aes(label = plot_df %>% dplyr::filter(padj_sign & lfc_sign) %$% gene_name),
-                check_overlap = TRUE, size = 3, hjust = 0, vjust = 1.5,
-                colour = "black", fontface = "plain") +
-      geom_text(data = annotations, aes(x = xpos, y = ypos, label = annotateText),
-                colour = "black", fontface = "italic", size = 2.5,
-                hjust = 1.03, vjust = -0.5) +
-      scale_colour_manual(values = c(no = "gray30", fold_change = "forestgreen", p_value = "royalblue", p_value_fold_change = "red2")) +
-      scale_x_continuous(limits = c(-8, 8)) +
-      guides(color = F, alpha = F) +
-      xlab("log2FC") +
-      ylab("-log10 p-adjusted value") +
-      theme_bw(base_size = 24) +
-      theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank()) +
-      theme(axis.text.x = element_text(size = 15),
-            axis.text.y = element_text(size = 15),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank()) +
-      theme(legend.position = "top")
-    
-    # save plot
-    ggsave(filename = file.path(outpath,
-                                str_c(ifelse(protein_coding_only == "yes", "protein_coding", "all_biotype"),
-                                      "plot", "vulcano", "DESeq2", str_c(grouping_variables, collapse = "_"),
-                                      str_c(result_clean[1], "_vs_", result_clean[2]),
-                                      "png", sep = ".")),
-           plot = vulcano_plot, width = 10, height = 10)
-    
-  }))
+  }
   
   
   ### create interactive plots

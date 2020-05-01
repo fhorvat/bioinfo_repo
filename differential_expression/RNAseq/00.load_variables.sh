@@ -1,7 +1,7 @@
 #!/bin/bash
 # ----------------Loading variables------------------- #
 # base path and experiment 
-BASE_PATH=${PWD%/Analysis/expression}
+BASE_PATH=${PWD%/Analysis/*}
 EXPERIMENT=${BASE_PATH##/*/}
 
 # mapped and documentation
@@ -19,9 +19,11 @@ GENES_INFO_PATH=${GENOME_PATH}/${FEATURES_NAME}.geneInfo.csv
 SINGLE_END=TRUE
 THREADS=1
 GROUPING_VARIABLES="genotype"
-RESULTS_GROUPS="Ago2_KO,Ago2_WT Ago2_HET,Ago2_WT Ago2_KO,Ago2_HET"
-PROTEIN_CODING_ONLY="no"
+RESULTS_GROUPS="Mov10l_KO,Mov10l_WT Mov10l_HET,Mov10l_WT Mov10l_KO,Mov10l_HET" # "no" for no diff. exp. analysis 
+PROTEIN_CODING_ONLY="yes"
 EXPLORATORY_ANALYSIS="yes"
-INTERACTIVE_PLOTS="yes"
-LFC_CUT="2"
-PADJ_CUT="0.05"
+VULCANO_PLOTS="no"
+INTERACTIVE_PLOTS="no"
+LFC_CUT="0.5"
+PADJ_CUT="0.1"
+FPKM_CUT="1"
