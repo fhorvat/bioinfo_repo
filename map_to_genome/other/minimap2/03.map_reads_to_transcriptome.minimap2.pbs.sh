@@ -15,12 +15,12 @@ MEMORY=50G
 BASE_DIR=`basename ${PWD/trinity*/}`
 
 IN_DIR_READS=../../../Raw/${BASE_DIR}/Cleaned/trimmed
-IN_SEQ_READS=(${IN_DIR_READS}/s_*all.PE_1.txt.gz)
+IN_SEQ_READS=(`ls ${IN_DIR_READS}/s_*all.PE_1.txt.gz`)
 UNIQ_SEQ_READS=(`printf "%s\n" "${IN_SEQ_READS[@]%_*.txt.gz}" | sort -u`)
 FILE_READS=${UNIQ_SEQ_READS[0]}
 
 IN_DIR_TRANS=.
-IN_SEQ_TRANS=(${IN_DIR_TRANS}/*.fasta)
+IN_SEQ_TRANS=(`ls ${IN_DIR_TRANS}/*.fasta`)
 FILE_TRANS=${IN_SEQ_TRANS[0]}
 
 BASE=${FILE_TRANS#${IN_DIR_TRANS}/}

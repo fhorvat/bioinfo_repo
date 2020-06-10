@@ -12,18 +12,16 @@ cd $PBS_O_WORKDIR
 THREADS=12
 MEMORY=50G
 
-BASE_DIR=`basename ${PWD/trinity*/}`
-
-IN_DIR_GEN=../../../genomes/$BASE_DIR
-IN_SEQ_GEN=(${IN_DIR_GEN}/*.fa.gz)
+IN_DIR_GEN=..
+IN_SEQ_GEN=($(find ${IN_DIR_GEN} -maxdepth 1 -name "*.fa"))
 FILE_GEN=${IN_SEQ_GEN[0]}
 
 IN_DIR_TRANS=.
-IN_SEQ_TRANS=(${IN_DIR_TRANS}/*.fasta)
+IN_SEQ_TRANS=($(find ${IN_DIR_TRANS} -maxdepth 1 -name "*.fa.gz"))
 FILE_TRANS=${IN_SEQ_TRANS[0]}
 
 BASE=${FILE_TRANS#${IN_DIR_TRANS}/}
-BASE=${BASE/.fasta/.t2g}
+BASE=${BASE%.cdna.all.fa.gz}
 
 MINIMAP2_PAR="-x splice \
 -a \
@@ -32,11 +30,8 @@ MINIMAP2_PAR="-x splice \
 # ----------------Commands------------------- #
 # align assembled transcriptome to genome
 minimap2 $MINIMAP2_PAR $FILE_GEN $FILE_TRANS | \
-sambamba view -f bam -F "not (unmapped or supplementary)" -t 6 -S /dev/stdin | \
-sambamba sort -t 6 -o ${BASE}.bam /dev/stdin
+sambamba view -f bam -F "not (unmapped or supplementary)" -t $THREADS -S /dev/stdin | \
+sambamba sort -t $THREADS -o ${BASE}.bam /dev/stdin
 
 # count mapped reads
 sambamba view -t $THREADS ${BASE}.bam | awk '{print $1}' | sort | uniq | wc -l > ${BASE}.read_counts.txt
-
-# count all reads in fasta file
-grep -c ">" $FILE_TRANS >> ${BASE}.read_counts.txt

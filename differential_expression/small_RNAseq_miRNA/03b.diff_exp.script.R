@@ -77,8 +77,8 @@ sample_table_path <- list.files(documentation_path, ".*sampleTable\\.csv", full.
 reads_stats_path <- file.path(mapped_path, "4_library_size", "library_sizes.txt")
 
 # FPM path
-fpm_path <- list.files(inpath, str_c(features_name, "\\.FPM\\.csv$"), full.names = T)
-fpm_mean_path <- list.files(inpath, str_c(features_name, "\\.FPM_mean\\.csv$"), full.names = T)
+fpm_path <- list.files(inpath, str_c(features_name, ".FPM.csv"), full.names = T)
+fpm_mean_path <- list.files(inpath, str_c(features_name, ".FPM_mean.csv"), full.names = T)
 
 ######################################################## READ DATA
 # read counts from featureCounts
@@ -387,8 +387,8 @@ if(!is.null(results_groups)){
     
     ## write all results
     # add worksheet and write data
-    openxlsx::addWorksheet(wb = wb_all, sheetName = str_c(result_clean[1], "_vs_", result_clean[2]))
-    openxlsx::writeData(wb = wb_all, sheet = str_c(result_clean[1], "_vs_", result_clean[2]), x = results_df)
+    openxlsx::addWorksheet(wb = wb_all, sheetName = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(1, 31))
+    openxlsx::writeData(wb = wb_all, sheet = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(1, 31), x = results_df)
     
     
     ## write only significant results, padj <= 0.1
@@ -401,8 +401,8 @@ if(!is.null(results_groups)){
     if(nrow(results_df_sign) > 0){
       
       # add worksheet and write data
-      openxlsx::addWorksheet(wb = wb_significant, sheetName = str_c(result_clean[1], "_vs_", result_clean[2]))
-      openxlsx::writeData(wb = wb_significant, sheet = str_c(result_clean[1], "_vs_", result_clean[2]), x = results_df_sign)
+      openxlsx::addWorksheet(wb = wb_significant, sheetName = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(1, 31))
+      openxlsx::writeData(wb = wb_significant, sheet = str_c(result_clean[1], "_vs_", result_clean[2]) %>% str_sub(1, 31), x = results_df_sign)
       
     }
     
