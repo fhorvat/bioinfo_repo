@@ -228,6 +228,24 @@ library(ggplot2)
 
 }
 
+### INFO: expands GRanges up- and down-stream
+### DATE: 2018-05-30
+### AUTHOR: Devon Ryan, https://bioinformatics.stackexchange.com/questions/4390/expand-granges-object-different-amounts-upstream-vs-downstream
+.env$expandRange <- function(x, upstream=2000, downstream=1000) {
+  
+  strand_is_minus <- strand(x) == "-"
+  on_plus <-- which(!strand_is_minus)
+  on_minus <- which(strand_is_minus)
+  
+  start(x)[on_plus] <- start(x)[on_plus] - upstream
+  start(x)[on_minus] <- start(x)[on_minus] - downstream
+  
+  end(x)[on_plus] <- end(x)[on_plus] + downstream
+  end(x)[on_minus] <- end(x)[on_minus] + upstream
+  
+ return(x)
+
+}
 
 ### attaches hidden enviorment
 attach(.env)
@@ -235,22 +253,6 @@ attach(.env)
 ### fortunes on start
 if(interactive())
   try(fortunes::fortune(), silent = TRUE)
-
-### radian options
-options(radian.color_scheme = "monokai")
-options(radian.editing_mode = "vi")
-options(radian.auto_match = FALSE)
-options(radian.auto_indentation = FALSE)
-options(radian.complete_while_typing = FALSE)
-options(radian.auto_width = FALSE)
-options(radian.completion_timeout = 0.00)
-options(radian.tab_size = 4)
-options(radian.prompt = "\033[0;34m>\033[0m ")
-options(radian.insert_new_line = FALSE)
-options(radian.escape_key_map = list(
-    list(key = "-", value = "<-"),
-    list(key = "m", value = "%>% ")
-))
 
 
 

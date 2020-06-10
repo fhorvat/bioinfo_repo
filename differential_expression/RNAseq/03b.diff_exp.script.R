@@ -85,8 +85,8 @@ sample_table_path <- list.files(documentation_path, ".*sampleTable\\.csv", full.
 reads_stats_path <- list.files(mapped_path, ".*\\.stats_and_tracks\\.csv", full.names = T)
 
 # FPKM path
-fpkm_path <- list.files(inpath, str_c(features_name, "\\.FPKM\\.csv$"), full.names = T)
-fpkm_mean_path <- list.files(inpath, str_c(features_name, "\\.FPKM_mean\\.csv$"), full.names = T)
+fpkm_path <- list.files(inpath, str_c(features_name, ".FPKM.csv"), full.names = T)
+fpkm_mean_path <- list.files(inpath, str_c(features_name, ".FPKM_mean.csv"), full.names = T)
 
 ######################################################## READ DATA
 # read counts from featureCounts
