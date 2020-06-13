@@ -7,3 +7,6 @@
 
 # exclude scripts in dir tree
 scripts_in_dirs.tar.gz
+
+# exclude bashrc
+/bashrc/*
