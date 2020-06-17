@@ -16,7 +16,7 @@ SCRIPT=03b.diff_exp.script.R
 source ./00.load_variables.sh
 
 # counts path
-COUNTS_PATH=($(find . -maxdepth 1 -name "*counts.txt"))
+COUNTS_PATH=($(find . -maxdepth 1 -name "${FEATURES_NAME}.counts.txt"))
 
 # input for manual script
 echo -e '\n'\
