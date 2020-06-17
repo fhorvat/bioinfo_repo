@@ -5,6 +5,7 @@
 #PBS -m n
 #PBS -N pbs.01.split_bam
 #PBS -l select=ncpus=1:mem=30g
+#PBS -J 0-11
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
@@ -16,13 +17,12 @@ STAR_INDEX=/common/DB/genome_reference/mouse/mm10.GRCm38.GCA_000001635.2/STAR_in
 CHR_LENGTH=${STAR_INDEX}/chrNameLength.txt
 
 INPUT_DIR=..
-STAGE="SOM"
-FILES=($(find $INPUT_DIR -maxdepth 1 -name "s_$STAGE.bam"))
-FILE=${FILES[0]}
+FILES=($(find $INPUT_DIR -maxdepth 1 -name "*.bam"))
+FILE=${FILES[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
 BASE=${BASE%.bam}
 
 # ----------------Commands------------------- #
 # bamtools filter by strand
-bamtools filter -in $FILE -out ${BASE}.antisense.bam -isReverseStrand true
-bamtools filter -in $FILE -out ${BASE}.sense.bam -isReverseStrand false
+bamtools filter -in $FILE -out ${BASE}.minus.bam -isReverseStrand true
+bamtools filter -in $FILE -out ${BASE}.plus.bam -isReverseStrand false
