@@ -37,14 +37,11 @@ args <-
 
 # list of read stats, genome logs and merged logs
 bw_path <- args$bw_path
-read_stats_path <- args$read_stats_path
+scale_factor <- as.numeric(args$scale_factor)
 
 ######################################################## READ DATA
 # read bigWig
 bw <- rtracklayer::import(bw_path)
-
-# read read counts
-read_stats <- readr::read_delim(read_stats_path, delim = "\t")
 
 ######################################################## MAIN CODE
 # get sample name
@@ -52,17 +49,9 @@ sample_name <-
   basename(bw_path) %>%
   str_remove(., "\\.bw$")
 
-# sum all the samples matching scaled one 
-scale_factor <- 
-  read_stats %>% 
-  dplyr::filter(str_detect(sample_id, sample_name)) %$% 
-  genome.mapped_minus_rDNA %>% 
-  sum(.)
-
 # scale bigWig
-mcols(bw)$score <- (mcols(bw)$score) / (round((scale_factor / 1e6), 6))
+mcols(bw)$score <- mcols(bw)$score / scale_factor
 
 # write bw
 rtracklayer::export(object = bw,
                     con = str_c(sample_name, ".scaled.bw"))
-
