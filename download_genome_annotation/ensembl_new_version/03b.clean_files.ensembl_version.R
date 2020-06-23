@@ -53,9 +53,6 @@ seqnames_path <- list.files(path = inpath, pattern = ".*assembly_report.txt")
 # ensembl .gtf path
 ensembl_path <- list.files(path = inpath, pattern = str_c("ensembl.", ensembl_release, ".*[0-9]{6}.gtf.gz"))
 
-# repeatMasker path
-rmsk_path <- list.files(path = inpath, pattern = "rmsk.*raw.fa.out.gz")
-
 # UCSC fasta index path
 UCSC_faidx_path <- list.files(path = inpath, pattern = "\\.fai")
 
@@ -66,24 +63,14 @@ seqnames_table <- readr::read_delim(file = seqnames_path, delim = "\t", comment 
 # read gtf
 ensembl_gtf <- read_delim(file = ensembl_path, delim = "\t", comment = "#", col_names = F, col_types = cols(.default = "c"))
 
-# read repeatMasker
-rmsk_df <- readr::read_table2(file = rmsk_path, skip = 3, col_names = F)
-
 # read UCSC fasta index
 UCSC_faidx <-
   readr::read_delim(UCSC_faidx_path, delim = "\t", col_names = F) %>%
   dplyr::select(UCSC_name = X1)
 
 ######################################################## MAIN CODE
-### clean and save repeatMasker
-rmsk_df %>%
-  dplyr::select(seqnames = X5, start = X6, end = X7, strand = X9, repName = X10, repClass_repFamily = X11, rmsk_id = X15) %>%
-  tidyr::separate(col = repClass_repFamily, into = c("repClass", "repFamily"), sep = "/") %>%
-  dplyr::mutate(strand = replace(strand, strand == "C", "-")) %T>%
-  readr::write_delim(str_replace(rmsk_path, "raw", "clean"), delim = "\t")
-
 ### UCSC seqnames
-# For unplaced and unlocalized scaffolds  UCSC almost always uses genBank accession = genBank_accn (for example mouse),
+# For unplaced and unlocalized scaffolds UCSC almost always uses genBank accession = genBank_accn (for example mouse),
 # but sometimes it uses refSeq accession = refSeq_accn (for example pig, cow).
 # Sometimes table already has UCSC-style names.
 # ENSEMBL uses GenBank accession for unplaced and unlocalized scaffolds.
@@ -141,11 +128,12 @@ system(stringr::str_c("gzip ", file.path(outpath, gtf_name)))
 ### get additional info about genes from Biomart
 ## Ensembl versions
 ensembl_url <-
-  tibble(ens_version = c(99, 98, 96, 95, 94, 93, 92, 91, 89, 86),
-         date = c("Jan 2020", "Sep 2019", "Apr 2019", "Jan 2019", "Oct 2018", "Jul 2018", "Apr 2018", "Dec 2017", "May 2017", "Oct 2016"),
+  tibble(ens_version = c(100, 99, 98, 96, 95, 94, 93, 92, 91, 89, 86),
+         date = c("Apr 2020", "Jan 2020", "Sep 2019", "Apr 2019", "Jan 2019", "Oct 2018", "Jul 2018", "Apr 2018", "Dec 2017", "May 2017", "Oct 2016"),
          URL_archive = c("www.ensembl.org",
-                         "http://sep2019.archive.ensembl.org",
-                         "http://apr2019.archive.ensembl.org",
+			 "http://jan2020.archive.ensembl.org",  
+			 "http://sep2019.archive.ensembl.org", 
+			 "http://apr2019.archive.ensembl.org",
                          "http://jan2019.archive.ensembl.org",
                          "http://oct2018.archive.ensembl.org",
                          "http://jul2018.archive.ensembl.org",
@@ -155,6 +143,7 @@ ensembl_url <-
                          "http://oct2016.archive.ensembl.org")) %>%
   dplyr::filter(ens_version == ensembl_release) %$%
   URL_archive
+
 
 # load Mart of mouse database from ensembl
 # sometimes function useMart isn't able to connect to server and returns error, this chunck repeats useMart until there is no error

@@ -6,7 +6,7 @@ options(bitmapType = "cairo")
 wideScreen()
 
 ######################################################## WORKING DIRECTORY
-setwd("/common/DB/genome_reference/mouse/mm10.GRCm38.GCA_000001635.2")
+setwd("/common/DB/genome_reference/chinese_hamster/CriGri_PICR.GCA_003668045")
 
 ######################################################## LIBRARIES
 library(dplyr)
@@ -35,10 +35,10 @@ inpath <- getwd()
 outpath <- getwd()
 
 # genome path
-genome_dir <- "/common/DB/genome_reference/mouse/mm10.GRCm38.GCA_000001635.2"
+genome_dir <- "/common/DB/genome_reference/chinese_hamster/CriGri_PICR.GCA_003668045"
 
 # clean repeatMasker path
-rmsk_path <- file.path(genome_dir, "rmsk.mm10.20180919.clean.fa.out.gz")
+rmsk_path <- file.path(genome_dir, "rmsk.CriGri_PICR.20200428.clean.fa.out.gz")
 
 ######################################################## READ DATA
 # read raw repeatMasker
@@ -60,8 +60,8 @@ rmsk_id <-
   .[, list(repName = str_c(repName, collapse = "/"), 
            repClass = str_c(unique(repClass), collapse = "/"), 
            repFamily = str_c(unique(repFamily), collapse = "/"), 
-           strand = str_c(unique(strand), collapse = "/")), by = "rmsk_ID"] %>% 
-  .[, rmsk_id := as.character(rmsk_ID)] %>% 
+           strand = str_c(unique(strand), collapse = "/")), by = "rmsk_id"] %>% 
+  .[, rmsk_id := as.character(rmsk_id)] %>% 
   .[]
 
 # split repeats by rmsk ID and get range
@@ -100,7 +100,6 @@ rmsk_within_names <-
   rmsk_overlaping[unique(queryHits(rmsk_within_overlaps))] %>% 
   names(.)
 
-
 # check if some of the "within" elements have another element within them (i. e. if they are interupted)
 rmsk_within_overlaps_2 <- findOverlaps(rmsk_within, type = "within", ignore.strand = T)
 rmsk_within_overlaps_2 <- rmsk_within_overlaps_2[!isSelfHit(rmsk_within_overlaps_2)]
@@ -112,7 +111,7 @@ rmsk_within_interupted_names <-
 
 # get names of elements which are completely within another element and are also not interupted
 rmsk_within_names <- setdiff(rmsk_within_names, rmsk_within_interupted_names)
-  
+
 
 ### find interupted elements
 # get difference between all interupted and elements completely within other element
@@ -177,4 +176,3 @@ rmsk_all <-
   dplyr::mutate(rmsk_id = as.integer(rmsk_id)) %>% 
   dplyr::arrange(rmsk_id) %T>%
   readr::write_delim(., path = file.path(genome_dir, basename(rmsk_path) %>% str_replace(., "clean.fa.out.gz", "joined_rmsk_id.fa.out.gz")), delim = "\t")
-
