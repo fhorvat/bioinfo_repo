@@ -5,31 +5,31 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -j oe
-#PBS -N pbs.annotation_cow
+#PBS -N pbs.annotation_pwk
 cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
 # set names and date
-NAME=cow
-SCI_NAME=bos_taurus
-ENSEMBL_NAME=btaurus
-ENSEMBL_RELEASE=96
-GENOME_USCS=bosTau9
-GENOME_ENSEMBL=ARS-UCD1.2
-ASSEMBLY_ID=GCA_002263795.2
-ASSEMBLY_REPORT=ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/263/795/GCF_002263795.1_ARS-UCD1.2/GCF_002263795.1_ARS-UCD1.2_assembly_report.txt
+NAME=mouse
+SCI_NAME=mus_musculus_pwkphj
+ENSEMBL_NAME=mpwkphj
+ENSEMBL_RELEASE=93
+GENOME_USCS=PWK_PhJ_v1
+GENOME_ENSEMBL=PWK_PhJ_v1
+ASSEMBLY_ID=GCA_001624775.1
+ASSEMBLY_REPORT=ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/624/775/GCA_001624775.1_PWK_PhJ_v1/GCA_001624775.1_PWK_PhJ_v1_assembly_report.txt
 
 # create dir
 DATE=`date +%Y%m%d`
-OUTPATH=/common/DB/genome_reference
+OUTPATH=/common/WORK/fhorvat/annotation
 OUTDIR=${OUTPATH}/${NAME}/${GENOME_USCS}.${GENOME_ENSEMBL}.${ASSEMBLY_ID}
 mkdir -p $OUTDIR
 cd $OUTDIR
 
 ## set URLs
 # UCSC
-UCSC_FTP=ftp://hgdownload.soe.ucsc.edu/goldenPath
-UCSC_URL=${UCSC_FTP}/${GENOME_USCS}
+UCSC_FTP=http://hgdownload.soe.ucsc.edu/hubs/mouseStrains
+UCSC_URL=${UCSC_FTP}/${ASSEMBLY_ID}_${GENOME_ENSEMBL}
 
 # ENSEMBL
 ENSEMBL_URL=ftp://ftp.ensembl.org/pub/release-$ENSEMBL_RELEASE
@@ -38,10 +38,9 @@ ENSEMBL_GTF=`curl -l ${ENSEMBL_URL}/gtf/${SCI_NAME}/ | grep "gtf.gz" | grep -v "
 
 # get links
 LINKS=(\
-${UCSC_URL}/bigZips/${GENOME_USCS}.2bit \
-${UCSC_URL}/bigZips/${GENOME_USCS}.fa.out.gz \
-${UCSC_URL}/bigZips/${GENOME_USCS}.chrom.sizes
-#${UCSC_URL}/database/refGene.txt.gz \
+${UCSC_URL}/${ASSEMBLY_ID}_${GENOME_ENSEMBL}.2bit \
+${UCSC_URL}/${ASSEMBLY_ID}_${GENOME_ENSEMBL}.rmsk.fa.out.gz \
+${UCSC_URL}/${ASSEMBLY_ID}_${GENOME_ENSEMBL}.chrom.sizes
 ${ENSEMBL_URL}/gtf/${SCI_NAME}/${ENSEMBL_GTF} \
 #${ENSEMBL_URL}/fasta/${SCI_NAME}/dna/${ENSEMBL_FASTA} \
 ${ASSEMBLY_REPORT} \
@@ -53,28 +52,25 @@ for LINK in "${LINKS[@]}"; do wget $LINK; done
 
 #### clean
 ## repeatMasker
-RMSK=($(find . -name "*fa.out.gz"))
+RMSK=(`ls *fa.out.gz`)
 RMSK_NEW=rmsk.${GENOME_USCS}.${DATE}.raw.fa.out.gz
 mv $RMSK $RMSK_NEW
-
-## refGene - rename, convert to genePred to gtf, remove genePred
-#mv refGene.txt.gz refGene.${GENOME_USCS}.${DATE}.txt.gz
-#zcat refGene.${GENOME_USCS}.${DATE}.txt.gz | cut -f 2- | genePredToGtf file stdin stdout -source=refSeq.${DATE} | sort -k1,1 -k4,4 | gzip > refGene.${GENOME_USCS}.${DATE}.gtf.gz
-#[ -f "refGene.${GENOME_USCS}.${DATE}.gtf.gz" ] && rm refGene.${GENOME_USCS}.${DATE}.txt.gz
 
 ## ensembl
 mv ${ENSEMBL_GTF} ensembl.${ENSEMBL_RELEASE}.${GENOME_ENSEMBL}.${DATE}.gtf.gz
 #mv ${ENSEMBL_FASTA} ensembl.${ENSEMBL_RELEASE}.${GENOME_ENSEMBL}.fa.gz
 
 ## genome
-# convert 2bit to fasta, index the genome, bgzip genome
+# convert 2bit to fasta, index the genome, gzip genome
+mv ${ASSEMBLY_ID}_${GENOME_ENSEMBL}.chrom.sizes ${GENOME_USCS}.chrom.sizes
+mv ${ASSEMBLY_ID}_${GENOME_ENSEMBL}.2bit ${GENOME_USCS}.2bit
 twoBitToFa ${GENOME_USCS}.2bit ${GENOME_USCS}.fa
-bgzip ${GENOME_USCS}.fa
-samtools faidx ${GENOME_USCS}.fa.gz
+samtools faidx ${GENOME_USCS}.fa
+gzip ${GENOME_USCS}.fa
 
 ## clean using custom R script
 cp /common/WORK/fhorvat/annotation/scripts/02a.clean_files.R $OUTDIR
 Rscript --vanilla 02a.clean_files.R $ENSEMBL_RELEASE $ENSEMBL_NAME $OUTDIR
 
 ## copy scripts to new dir
-cp /common/WORK/fhorvat/annotation/scripts/01a.download_annotation.common.pbs.sh $OUTDIR
+cp /common/WORK/fhorvat/annotation/scripts/01b.download_annotation.mouse_strains.pbs.sh $OUTDIR
