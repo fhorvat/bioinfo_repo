@@ -19,6 +19,7 @@ IN_SEQ=($(find $INPUT_DIR -maxdepth 1 \( -name "*.txt.gz" -not -name "*all*" \))
 UNIQ_SEQ=(`printf "%s\n" "${IN_SEQ[@]%_[1-2].txt.gz}" | sort -u`)
 FILE=${UNIQ_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
+BASE=${BASE%.txt.gz}
 
 STAR_PAR="--genomeDir $STAR_INDEX \
 --runThreadN $THREADS \

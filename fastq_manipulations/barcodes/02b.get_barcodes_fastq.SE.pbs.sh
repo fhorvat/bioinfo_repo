@@ -5,7 +5,7 @@
 #PBS -m n
 #PBS -N pbs.01.get_barcodes
 #PBS -l select=ncpus=1:mem=10g
-#PBS -J 0-8
+#PBS -J 0-9
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
@@ -13,8 +13,8 @@ cd $PBS_O_WORKDIR
 THREADS=1
 MEMORY=10g
 
-INPUT_DIR=..
-IN_SEQ=($(find $INPUT_DIR -name "*.txt.gz"))
+INPUT_DIR=.
+IN_SEQ=($(find $INPUT_DIR -maxdepth 1 -name "*.txt.gz"))
 UNIQ_SEQ=($(printf "%s\n" "${IN_SEQ[@]%.txt.gz}" | sort -u))
 FILE=${UNIQ_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}

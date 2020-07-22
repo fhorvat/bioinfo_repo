@@ -1,0 +1,1 @@
+zcat ensembl.99.MesAur1.0.20200609.cdna.all.fa.gz | grep ">" | sed 's/.* gene://g' | sed 's/ .*gene_symbol:/ /g' | sed 's/ description.*//g' | awk '{print $1, $2, $1}' > ensembl.99.MesAur1.0.20200609.cdna.all.geneID_to_geneSymbol.txt

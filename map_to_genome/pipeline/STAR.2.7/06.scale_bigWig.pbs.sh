@@ -25,6 +25,6 @@ RPM=`echo "scale=6; 1000000.0/"$RPM | bc`
 BASE=${BASE}.scaled
 
 # bam to scaled bedGraph, bedGraph to bigWig
-genomeCoverageBed -ibam $FILE -bg -scale $RPM -split -g $CHR_LENGTH > ${BASE}.bedGraph
+genomeCoverageBed -ibam $FILE -bg -scale $RPM -split > ${BASE}.bedGraph
 wigToBigWig ${BASE}.bedGraph $CHR_LENGTH ${BASE}.bw
 [ -f "${BASE}.bw" ] && rm ${BASE}.bedGraph
