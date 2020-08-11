@@ -3,7 +3,7 @@
 sh 00b.change_scripts.sh
 
 # maps reads to genome
-JOB_01=`qsub 01.map_to_genome.STAR.PE.pbs.sh`;echo $JOB_01
+JOB_01=`qsub 01.map_to_genome.STAR.pbs.sh`;echo $JOB_01
 
 # merges unmapped reads and maps them to genome again
 JOB_02=`qsub -W depend=afterok:$JOB_01 03b.sort_bam_by_name.pbs.sh`;echo $JOB_02
