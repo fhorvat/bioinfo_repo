@@ -85,8 +85,8 @@ sample_table_path <- list.files(documentation_path, ".*sampleTable\\.csv", full.
 reads_stats_path <- list.files(mapped_path, ".*\\.stats_and_tracks\\.csv", full.names = T)
 
 # FPKM path
-fpkm_path <- list.files(inpath, str_c(features_name, ".FPKM.csv"), full.names = T)
-fpkm_mean_path <- list.files(inpath, str_c(features_name, ".FPKM_mean.csv"), full.names = T)
+fpkm_path <- list.files(inpath, str_c(features_name, "\\.FPKM\\.csv$"), full.names = T)
+fpkm_mean_path <- list.files(inpath, str_c(features_name, "\\.FPKM_mean\\.csv$"), full.names = T)
 
 ######################################################## READ DATA
 # read counts from featureCounts
@@ -414,7 +414,7 @@ if(results_groups != "no"){
     if((length(result_clean) == 2) & (all(result_clean %in% sample_table_dds$grouped_variables))){
       
       # get results, shrink logFC
-      dds_shrink <- lfcShrink(dds_deseq, contrast = c("grouped_variables", result_clean[1], result_clean[2]))
+      dds_shrink <- lfcShrink(dds_deseq, contrast = c("grouped_variables", result_clean[1], result_clean[2]), type = "normal")
       
       # get results table, add to sheet
       results_df <-

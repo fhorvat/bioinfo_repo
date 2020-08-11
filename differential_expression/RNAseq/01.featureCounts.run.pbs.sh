@@ -3,7 +3,7 @@
 #PBS -q MASTER
 #PBS -M fihorvat@gmail.com
 #PBS -m n
-#PBS -N pbs.01c.featureCounts
+#PBS -N pbs.01.featureCounts
 #PBS -l select=ncpus=12:mem=40g
 #PBS -j oe
 cd $PBS_O_WORKDIR
