@@ -447,7 +447,6 @@ if(results_groups != "no"){
     results_df_sign <-
       results_list[[result]]  %>%
       dplyr::filter(padj <= padj_cut) %>% 
-      dplyr::filter(abs(log2FoldChange) >= lfc_cut) %>% 
       dplyr::filter_at(.vars = vars(matches("\\.FPKM")), any_vars(. > fpkm_cut))
     
     # return
