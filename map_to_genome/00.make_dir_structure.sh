@@ -11,7 +11,7 @@ $IN_DIR/Data/Documentation \
 $IN_DIR/Analysis/expression
 
 # copy scripts
-cp /common/WORK/fhorvat/Projekti/Svoboda/scripts/map_to_genome/pipeline/0* $IN_DIR/Data/Mapped/STAR_mm10
+cp /common/WORK/fhorvat/Projekti/Svoboda/scripts/map_to_genome/pipeline/RNAseq/* $IN_DIR/Data/Mapped/STAR_mm10
 cp /common/WORK/fhorvat/Projekti/Svoboda/scripts/differential_expression/RNAseq/0* $IN_DIR/Analysis/expression
 cp /common/WORK/fhorvat/Projekti/Svoboda/scripts/map_to_genome/QC/0* $IN_DIR/Data/Raw/QC
 
