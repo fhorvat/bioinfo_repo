@@ -21,7 +21,7 @@ TABLE_PATH = "http://hex.bioinfo.hr/~fhorvat" + "${HEX_PATH}".replaceFirst(/~\/p
 
 SCRIPTS_DIR = "/common/WORK/fhorvat/Projekti/Svoboda/CNOT6L/Data/Mapped/test/bin"
 CLASS_READS_SCRIPT = "$SCRIPTS_DIR/class_reads.R"
-SUM_READ_STATS_SCRIPT = "$SCRIPTS_DIR/read_stats.R"
+SUM_READ_STATS_SCRIPT = "$SCRIPTS_DIR/sum_read_stats.R"
 SCALE_BIGWIG_SCRIPT= "$SCRIPTS_DIR/scale_bigWig.R"
 STATS_AND_TRACKS_SCRIPT = "$SCRIPTS_DIR/write_stats_and_tracks.R"
 SUMMARIZE_OVERLAPS_SCRIPT = "$SCRIPTS_DIR/summarizeOverlaps.R"
