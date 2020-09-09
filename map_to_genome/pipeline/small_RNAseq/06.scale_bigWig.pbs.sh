@@ -30,7 +30,7 @@ LOG=$(find . -maxdepth 1 -name "log.read_stats.txt")
 # get number of mapped reads in millions
 if [ ${SCALING} == "19to32nt" ]
 then
-   SAMPLE=${BASE%.*}
+   SAMPLE=${BASE%%.*}
    SAMPLE=${SAMPLE}.SE.19to32nt
    SCALE_FACTOR=$(awk -v PAT="${SAMPLE}\t" -F '\t' '$0 ~ PAT {print 1000000 / $2}' ${LOG})
    BASE=${BASE}.scaled_19to32
