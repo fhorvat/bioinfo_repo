@@ -27,6 +27,7 @@ BASE=${BASE%.bam}
 SCRIPT_PAR="--parallel ${THREADS} \
 --comprehensive \
 --bedGraph \
+--gzip \
 --buffer_size ${MEMORY} \
 --output ."
 

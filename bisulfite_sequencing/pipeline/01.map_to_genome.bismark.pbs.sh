@@ -43,5 +43,11 @@ mv ${BASE}.txt.gz_bismark_bt2.bam ${BASE}_bismark_bt2.bam
 mv ${BASE}.txt.gz_bismark_bt2_SE_report.txt ${BASE}_bismark_bt2_SE_report.txt
 mv ${BASE}.txt.gz_unmapped_reads.fq.gz ${BASE}.unmapped.txt.gz
 
+# sort bam
+samtools sort -@ ${THREADS} -o ${BASE}_bismark_bt2.sorted.bam ${BASE}_bismark_bt2.bam
+
+# rename over original file
+[ -f "${BASE}_bismark_bt2.sorted.bam" ] && mv ${BASE}_bismark_bt2.sorted.bam ${BASE}_bismark_bt2.bam
+
 # bam index
 samtools index -@ ${THREADS} ${BASE}_bismark_bt2.bam
