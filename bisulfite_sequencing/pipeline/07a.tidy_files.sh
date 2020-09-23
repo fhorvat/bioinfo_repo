@@ -37,6 +37,7 @@ mv \
 CHG_context_* \
 CHH_context_* \
 CpG_context_* \
+*bismark.cov.gz \
 ./4_methylation_calls/
 
 # reports
@@ -44,6 +45,5 @@ mv \
 *_bismark_bt2_*_report.txt \
 *.bismark.cov \
 *.M-bias.txt \
-*_splitting_report.txt \
 bismark_summary_report.txt \
 ./5_reports/

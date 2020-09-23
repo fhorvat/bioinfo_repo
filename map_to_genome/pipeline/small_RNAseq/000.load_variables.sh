@@ -12,6 +12,7 @@ INPUT_DIR=../../Raw/Cleaned
 ENSEMBL_VERSION=99
 SJDB_OVERHANG=sjdbOverhang_100
 HEX_OUT=accessory_data_sets/${EXPERIMENT}
+CLASS_ALGORITHM=loop #loop or data.table
 
 # chose .bw track scaling (19to32nt or respective)
 SCALING="19to32nt"

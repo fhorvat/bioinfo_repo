@@ -24,6 +24,9 @@ BASE=${FILE#${INPUT_DIR}/}
 BASE=${BASE%.bedGraph}
 
 # ----------------Commands------------------- #
+# ungzip
+gunzip ${FILE}
+
 # bam to scaled bedGraph, bedGraph to bigWig
 wigToBigWig ${BASE}.bedGraph ${CHR_LENGTH} ${BASE}.bw
 [ -f "${BASE}.bw" ] && rm ${BASE}.bedGraph
