@@ -44,7 +44,7 @@ stats_tbl <-
   readr::read_delim(stats_path, delim = "\t") %>% 
   dplyr::select(-c(`No Genomic Sequence`, `Duplicate Reads (removed)`, `Unique Reads (remaining)`)) %>% 
   dplyr::rename(sample_id = File) %>% 
-  dplyr::mutate(sample_id = str_remove(sample_id, "_bismark_bt2.bam"))
+  dplyr::mutate(sample_id = str_remove(sample_id, "_bismark_bt2\\.bam|_bismark_bt2_pe\\.bam"))
 
 # tracks
 tracks_tbl <-
@@ -54,7 +54,7 @@ tracks_tbl <-
                 str_detect(string = URL, pattern = "http"),
                 !str_detect(string = URL, pattern = "bai"),
                 str_detect(string = URL, pattern = str_c(stats_tbl$sample_id, collapse = "|"))) %>%
-  dplyr::mutate(sample_id = basename(URL) %>% str_remove_all(., "\\_bismark_bt2\\.bam$|\\.bw$|\\.scaled"),
+  dplyr::mutate(sample_id = basename(URL) %>% str_remove_all(., "\\_bismark_bt2\\.bam$|\\.bw$|\\.scaled|_bismark_bt2_pe\\.bam|_bismark_bt2_pe"),
                 experiment = experiment,
                 file_type = ifelse(test = str_detect(basename(URL), "bw"),
                                    yes = "methylation_coverage",

@@ -300,6 +300,6 @@ if(class_algorithm == "loop"){
   reads_class_sum %<>%
     dplyr::mutate(sample_id = bam_name,
                   experiment = experiment_name) %T>%
-    readr::write_delim(x = ., path = file.path(outpath, str_c(bam_name, "loop.read_stats", "txt", sep = ".")), delim = "\t")
+    readr::write_delim(x = ., path = file.path(outpath, str_c(bam_name, "read_stats", "txt", sep = ".")), delim = "\t")
   
 }

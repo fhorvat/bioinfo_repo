@@ -152,6 +152,7 @@ features_exons <- args$features_exons
 features_rmsk <- args$features_rmsk
 features_geneInfo <- args$features_geneInfo
 features_mirbase <- args$features_mirbase
+class_algorithm <- args$class_algorithm
 
 ######################################################## READ DATA
 # read gene info
@@ -159,7 +160,7 @@ genes_info <- readr::read_csv(features_geneInfo)
 
 # read exons
 exons_gr <-
-  readRDS(file = features_exons) %>% 
+  readRDS(file = features_exons) %>%
   tibble::as_tibble(.) %>%
   dplyr::left_join(., genes_info %>% dplyr::select(gene_id, gene_biotype), by = "gene_id") %>%
   dplyr::select(seqnames:strand, gene_id, gene_biotype) %>%
@@ -202,10 +203,10 @@ features_gr <- c(rmsk_gr, exons_gr, mirna_gr)
 
 ######################################################## MAIN CODE
 ### set feature classes
-class_hier <- c("miRNA.mature.sense", "miRNA.other.sense", 
-                "protein_coding.sense", 
-                "rRNA", "SINE", "LINE", "LTR", "other_repeat", 
-                "annotated_pseudogene", 
+class_hier <- c("miRNA.mature.sense", "miRNA.other.sense",
+                "protein_coding.sense",
+                "rRNA", "SINE", "LINE", "LTR", "other_repeat",
+                "annotated_pseudogene",
                 "other", "not_annotated")
 
 ### class reads and save table
@@ -214,82 +215,91 @@ reads_class <- classReadsFactor(bam_path = bam_path,
                                 yield = 1000000,
                                 isFirstInPair = NA)
 
-# create class hierarchy table
-hier_dt <- data.table(position = 1:length(class_hier), 
-                      read_group = class_hier)
-data.table::setkey(hier_dt, "read_group")
+### classify reads using data.table = faster, but more memory-hungry and it fails for realy big datasets (1 billion+ rows)
+if(class_algorithm == "data.table"){
+  
+  # create class hierarchy table
+  hier_dt <- data.table(position = 1:length(class_hier),
+                        read_group = class_hier)
+  data.table::setkey(hier_dt, "read_group")
+  
+  # create class table
+  read_class_dt <- data.table(read_name = reads_class,
+                              read_group = names(reads_class))
+  data.table::setkey(read_class_dt, "read_group")
+  
+  # get highest hit for each read
+  class_sum <-
+    read_class_dt[hier_dt] %>%
+    .[, list(position = min(position)), by = "read_name"] %>%
+    .[order(position), list(count = .N), by = "position"] %>%
+    .[hier_dt, on = "position"] %>%
+    .[is.na(count), count := 0] %>%
+    .[, `:=`(sample_id = bam_name)] %>%
+    .[order(position), ] %>%
+    .[, position := NULL] %>%
+    setcolorder(., c("read_group", "count", "sample_id"))
+  
+  # write
+  readr::write_delim(x = class_sum, path = file.path(outpath, str_c(bam_name, "read_stats", "txt", sep = ".")), delim = "\t")
+  
+}
 
-# create class table
-read_class_dt <- data.table(read_name = reads_class, 
-                            read_group = names(reads_class))
-data.table::setkey(read_class_dt, "read_group")
-
-# get highest hit for each read
-class_sum <- 
-  read_class_dt[hier_dt] %>% 
-  .[, list(position = min(position)), by = "read_name"] %>% 
-  .[order(position), list(count = .N), by = "position"] %>%
-  .[hier_dt, on = "position"] %>%
-  .[is.na(count), count := 0] %>% 
-  .[, `:=`(sample_id = bam_name)] %>%
-  .[order(position), ] %>% 
-  .[, position := NULL] %>% 
-  setcolorder(., c("read_group", "count", "sample_id"))
-
-# write
-readr::write_delim(x = class_sum, path = file.path(outpath, str_c(bam_name, "read_stats", "txt", sep = ".")), delim = "\t")
-
-
-# ### loop through unique names and sum read categories
-# # get unique names
-# reads_class_unique <- unique(reads_class)
-# 
-# # create sum table
-# reads_class_sum <- tibble(read_group = class_hier,
-#                           count = 0)
-# 
-# # set loop step
-# loop_step <- 100000
-# 
-# # set loop index
-# loop_index <- seq(0, length(reads_class_unique), by = loop_step)
-# if(loop_index[length(loop_index)] < length(reads_class_unique)){
-#   loop_index <- c(loop_index, length(reads_class_unique))
-# }
-# 
-# # loop
-# for(n in 1:(length(loop_index) - 1)){
-#   
-#   # subset vector
-#   reads_class_subset <- reads_class[reads_class %in% reads_class_unique[(loop_index[n] + 1):loop_index[n + 1]]]
-#   
-#   # summarize read classification
-#   read_class_vector <-
-#     factor(x = names(reads_class_subset), levels = class_hier) %>%
-#     as.numeric(.) %>%
-#     split(., factor(reads_class_subset)) %>%
-#     purrr::map(., min) %>%
-#     unlist(.)
-#   
-#   # summarize
-#   reads_class_sum_subset <-
-#     tibble::tibble(read_id = names(read_class_vector),
-#                    read_group = class_hier[read_class_vector]) %>%
-#     unique(.) %>%
-#     dplyr::group_by(read_group) %>%
-#     dplyr::summarise(count = n())
-#   
-#   # join with sum vector
-#   reads_class_sum %<>%
-#     dplyr::left_join(., reads_class_sum_subset, by = "read_group") %>%
-#     dplyr::mutate(count.y = replace(count.y, is.na(count.y), 0),
-#                   count = count.x + count.y) %>%
-#     dplyr::select(read_group, count)
-#   
-# }
-# 
-# # add info about sample and experiment, save
-# reads_class_sum %<>%
-#   dplyr::mutate(sample_id = bam_name,
-#                 experiment = experiment_name) %T>%
-#   readr::write_delim(x = ., path = file.path(outpath, str_c(bam_name, "read_stats", "txt", sep = ".")), delim = "\t")
+### classify reads using loop = faster, but less memory-required
+if(class_algorithm == "loop"){
+  
+  ### loop through unique names and sum read categories
+  # get unique names
+  reads_class_unique <- unique(reads_class)
+  
+  # create sum table
+  reads_class_sum <- tibble(read_group = class_hier,
+                            count = 0)
+  
+  # set loop step
+  loop_step <- 100000
+  
+  # set loop index
+  loop_index <- seq(0, length(reads_class_unique), by = loop_step)
+  if(loop_index[length(loop_index)] < length(reads_class_unique)){
+    loop_index <- c(loop_index, length(reads_class_unique))
+  }
+  
+  # loop
+  for(n in 1:(length(loop_index) - 1)){
+    
+    # subset vector
+    reads_class_subset <- reads_class[reads_class %in% reads_class_unique[(loop_index[n] + 1):loop_index[n + 1]]]
+    
+    # summarize read classification
+    read_class_vector <-
+      factor(x = names(reads_class_subset), levels = class_hier) %>%
+      as.numeric(.) %>%
+      split(., factor(reads_class_subset)) %>%
+      purrr::map(., min) %>%
+      unlist(.)
+    
+    # summarize
+    reads_class_sum_subset <-
+      tibble::tibble(read_id = names(read_class_vector),
+                     read_group = class_hier[read_class_vector]) %>%
+      unique(.) %>%
+      dplyr::group_by(read_group) %>%
+      dplyr::summarise(count = n())
+    
+    # join with sum vector
+    reads_class_sum %<>%
+      dplyr::left_join(., reads_class_sum_subset, by = "read_group") %>%
+      dplyr::mutate(count.y = replace(count.y, is.na(count.y), 0),
+                    count = count.x + count.y) %>%
+      dplyr::select(read_group, count)
+    
+  }
+  
+  # add info about sample and experiment, save
+  reads_class_sum %<>%
+    dplyr::mutate(sample_id = bam_name,
+                  experiment = experiment_name) %T>%
+    readr::write_delim(x = ., path = file.path(outpath, str_c(bam_name, "read_stats", "txt", sep = ".")), delim = "\t")
+  
+}

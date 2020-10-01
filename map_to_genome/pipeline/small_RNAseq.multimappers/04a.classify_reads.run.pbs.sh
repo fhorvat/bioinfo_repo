@@ -32,7 +32,8 @@ bam_name=\'$BAM_NAME\''\n'\
 features_exons=\'$FEATURES_EXONS\''\n'\
 features_rmsk=\'$FEATURES_RMSK\''\n'\
 features_geneInfo=\'$FEATURES_GENEINFO\''\n'\
-features_mirbase=\'$FEATURES_MIRBASE\''\n'
+features_mirbase=\'$FEATURES_MIRBASE\''\n'\
+class_algorithm=\'$CLASS_ALGORITHM\''\n'
 
 # ----------------Commands------------------- #
 # run script
@@ -44,4 +45,5 @@ Rscript $SCRIPT \
 --features_exons $FEATURES_EXONS \
 --features_geneInfo $FEATURES_GENEINFO \
 --features_rmsk $FEATURES_RMSK \
---features_mirbase $FEATURES_MIRBASE
+--features_mirbase $FEATURES_MIRBASE \
+--class_algorithm $CLASS_ALGORITHM
