@@ -18,10 +18,10 @@ THREADS=1
 
 # input 
 INPUT_DIR=.
-IN_SEQ=($(find $INPUT_DIR -maxdepth 1 \( -name "*bedGraph" \)))
+IN_SEQ=($(find $INPUT_DIR -maxdepth 1 \( -name "*bedGraph.gz" \)))
 FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
-BASE=${BASE%.bedGraph}
+BASE=${BASE%.bedGraph.gz}
 
 # ----------------Commands------------------- #
 # ungzip

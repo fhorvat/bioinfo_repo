@@ -1,8 +1,8 @@
 #/bin/bah
 
 # ----------------Loading variables------------------- #
-HEX_PATH=/home/students/fhorvat/public_html/Svoboda/bw_tracks/accessory_data_sets/Gahurova_2017_EpigeneticsChromatin_GSE86297
-LOBSANG_PATH=/common-lobsang/WORK/fhorvat/Projekti/Svoboda/accessory_data_sets/otherSeq/Gahurova_2017_EpigeneticsChromatin_GSE86297/Data/Mapped/Bismark_mm10
+HEX_PATH=%HEX_PATH
+LOBSANG_PATH=%LOBSANG_PATH
 
 # ----------------Commands------------------- #
 # create links

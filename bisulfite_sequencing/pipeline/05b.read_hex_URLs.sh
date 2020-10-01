@@ -13,3 +13,4 @@ wget ${TABLE_PATH}
 # change permissions
 find . -maxdepth 1 \( -name "*.bw" \) -exec chmod 744 {} \;
 find . -maxdepth 1 \( -name "*.bam*" -not -name "*genome*" -not -name "*rDNA_45S*" -not -name "*sortedByName*" \) -exec chmod 744 {} \;
+find . -maxdepth 1 \( -name "*.html" \) -exec chmod 744 {} \;
