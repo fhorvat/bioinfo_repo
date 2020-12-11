@@ -4,7 +4,7 @@
 source ./000.load_variables.sh
  
 # get number of samples for PBS array index
-N_SAMPLES=($(printf "%s\n" "${IN_SEQ[@]%_[1-2].txt.gz}" | sort -u | wc -l | awk '{print $1-1}'))
+N_SAMPLES=($(printf "%s\n" "${IN_SEQ[@]%_[1,2,s].txt.gz}" | sort -u | wc -l | awk '{print $1-1}'))
 
 # get timestamp
 TIMESTAMP=$(date)

@@ -20,5 +20,5 @@ FILE=${UNIQ_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
 
 # ----------------Commands------------------- #
-zcat ${FILE}_1.txt.gz | awk '{if (NR % 4 == 1) print $2}' | awk -F ":" '{print $4}' | sort | uniq > ${BASE}_1.barcodes.txt
-zcat ${FILE}_2.txt.gz | awk '{if (NR % 4 == 1) print $2}' | awk -F ":" '{print $4}' | sort | uniq > ${BASE}_2.barcodes.txt
+zcat ${FILE}_1.txt.gz | awk '{if (NR % 4 == 1) print $2}' | awk -F ":" '{print $4}' | sort | uniq -c | sort -k1 -n -r > ${BASE}_1.barcodes.txt
+zcat ${FILE}_2.txt.gz | awk '{if (NR % 4 == 1) print $2}' | awk -F ":" '{print $4}' | sort | uniq -c | sort -k1 -n -r > ${BASE}_2.barcodes.txt

@@ -17,7 +17,7 @@ source ./000.load_variables.sh
 THREADS=4
 
 # input
-UNIQ_SEQ=($(printf "%s\n" "${IN_SEQ[@]%_[1-2].txt.gz}" | sort -u))
+UNIQ_SEQ=($(printf "%s\n" "${IN_SEQ[@]%_[1,2,s].txt.gz}" | sort -u))
 FILE=${UNIQ_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
 BASE=${BASE%.txt.gz}
@@ -35,7 +35,7 @@ if [ ${SINGLE_END} == TRUE ]
 then
 
    # run bismark
-   bismark ${SCRIPT_PAR} --genome_folder ${BISMARK_INDEX} --single_end ${FILE} 
+   bismark ${SCRIPT_PAR} --genome_folder ${BISMARK_INDEX} --single_end ${FILE}.txt.gz
 
    # rename
    mv ${BASE}.txt.gz_bismark_bt2.bam ${BASE}_bismark_bt2.bam
@@ -49,7 +49,13 @@ then
    [ -f "${BASE}_bismark_bt2.sorted.bam" ] && mv ${BASE}_bismark_bt2.sorted.bam ${BASE}_bismark_bt2.bam
 
    # bam index
-   samtools index -@ ${THREADS} ${BASE}_bismark_bt2.bam   
+   samtools index -@ ${THREADS} ${BASE}_bismark_bt2.bam
+
+   # bam to scaled bedGraph, bedGraph to bigWig
+   genomeCoverageBed -ibam ${BASE}_bismark_bt2.bam -bg -split > ${BASE}.bedGraph
+   wigToBigWig ${BASE}.bedGraph ${CHR_LENGTH} ${BASE}_bismark_bt2.raw.bw
+   [ -f "${BASE}_bismark_bt2.raw.bw" ] && rm ${BASE}.bedGraph
+
 
 else
 
@@ -70,5 +76,10 @@ else
 
    # bam index
    samtools index -@ ${THREADS} ${BASE}_bismark_bt2_pe.bam
+
+   # bam to scaled bedGraph, bedGraph to bigWig
+   genomeCoverageBed -ibam ${BASE}_bismark_bt2_pe.bam -bg -split > ${BASE}.bedGraph
+   wigToBigWig ${BASE}.bedGraph ${CHR_LENGTH} ${BASE}_bismark_bt2_pe.raw.bw
+   [ -f "${BASE}_bismark_bt2_pe.raw.bw" ] && rm ${BASE}.bedGraph
 
 fi

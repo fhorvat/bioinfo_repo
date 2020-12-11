@@ -184,7 +184,11 @@ if(all(colnames(se_filt) == rownames(sample_table_dds))){
 
 ### DDS
 # make DESeqDataSet
-dds <- DESeqDataSet(se_filt, design = ~grouped_variables)
+if(results_groups == "no"){
+  dds <- DESeqDataSet(se_filt, design = ~1)
+}else{
+  dds <- DESeqDataSet(se_filt, design = ~grouped_variables)
+}
 
 
 ####### EXPLORATORY ANALYSIS
