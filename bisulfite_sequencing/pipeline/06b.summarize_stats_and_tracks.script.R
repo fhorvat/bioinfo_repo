@@ -54,14 +54,19 @@ tracks_tbl <-
                 str_detect(string = URL, pattern = "http"),
                 !str_detect(string = URL, pattern = "bai"),
                 str_detect(string = URL, pattern = str_c(stats_tbl$sample_id, collapse = "|"))) %>%
-  dplyr::mutate(sample_id = basename(URL) %>% str_remove_all(., "\\_bismark_bt2\\.bam$|\\.bw$|\\.scaled|_bismark_bt2_pe\\.bam|_bismark_bt2_pe"),
+  dplyr::mutate(sample_id = basename(URL) %>% 
+                  str_remove_all(., "\\_bismark_bt2\\.bam$|\\.bw$|\\.scaled|_bismark_bt2_pe\\.bam|_bismark_bt2_pe|_bismark_bt2\\.bw|_bismark_bt2\\.raw\\.bw$"),
                 experiment = experiment,
                 file_type = ifelse(test = str_detect(basename(URL), "bw"),
-                                   yes = "methylation_coverage",
+                                   yes = "coverage",
                                    no = "individual_reads"),
-                bw_name = str_remove(sample_id, "^s_"),
+                file_type = ifelse(test = str_detect(basename(URL), "\\.raw.bw$"), 
+                                   yes = "raw_coverage", 
+                                   no = file_type), 
+                file_type = replace(file_type, file_type == "coverage", "methylation_coverage"),
+                bw_name = str_remove(sample_id, "^s_") %>% str_c(., ifelse(file_type == "methylation_coverage", ".meth_bw", ".raw_bw")),
                 bam_name = str_c(str_remove(sample_id, "^s_"), "bam", sep = "."),
-                URL = ifelse(test = (file_type == "methylation_coverage"),
+                URL = ifelse(test = (str_detect(file_type, "coverage")),
                              yes = str_c("track type=bigWig name=\"", bw_name, "\" bigDataUrl=\"", URL, "\""),
                              no = str_c("track type=bam name=\"", bam_name, "\" bigDataUrl=\"", URL, "\""))) %>%
   dplyr::select(-c(bw_name, bam_name))
@@ -82,8 +87,8 @@ report_all_tbl <-
 
 # create table with all possible columns
 tracks_placeholder <-
-  tibble(sample_id = rep(unique(tracks_tbl$sample_id), each = 2),
-         file_type = rep(c("methylation_coverage", "individual_reads"), length(unique(tracks_tbl$sample_id))))
+  tibble(sample_id = rep(unique(tracks_tbl$sample_id), each = 3),
+         file_type = rep(c("raw_coverage", "methylation_coverage", "individual_reads"), length(unique(tracks_tbl$sample_id))))
 
 # join placeholder with table
 tracks_tbl_tidy <-
@@ -97,6 +102,6 @@ tracks_tbl_tidy <-
 stats_and_tracks <-
   right_join(stats_tbl, tracks_tbl_tidy, by = "sample_id") %>%
   right_join(., reports_tbl, by = "sample_id") %>% 
-  dplyr::select(experiment, sample_id, methylation_coverage, individual_reads, report_URL, everything()) %>% 
+  dplyr::select(experiment, sample_id, raw_coverage, methylation_coverage, individual_reads, report_URL, everything()) %>% 
   bind_rows(., report_all_tbl) %T>%
   readr::write_csv(., path = file.path(outpath, str_c("log.", experiment, ".stats_and_tracks.csv")))
