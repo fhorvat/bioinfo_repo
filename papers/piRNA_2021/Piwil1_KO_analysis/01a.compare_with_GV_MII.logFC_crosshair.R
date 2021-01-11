@@ -1,0 +1,129 @@
+### INFO: 
+### DATE: Thu Jun 04 14:22:00 2020
+### AUTHOR: Filip Horvat
+rm(list = ls()); gc()
+options(bitmapType = "cairo")
+wideScreen()
+
+######################################################## WORKING DIRECTORY
+setwd("/common/WORK/fhorvat/Projekti/Svoboda/piRNA.Zuzka/Analysis/2020_paper/Piwil1_KO_analysis")
+
+######################################################## LIBRARIES
+library(dplyr)
+library(readr)
+library(magrittr)
+library(stringr)
+library(tibble)
+library(tidyr)
+library(ggplot2)
+library(data.table)
+library(purrr)
+
+library(openxlsx)
+
+######################################################## SOURCE FILES
+
+######################################################## FUNCTIONS
+
+######################################################## PATH VARIABLES
+# set inpath 
+inpath <- getwd()
+
+# set outpath
+outpath <- getwd()
+
+# base path
+base_path <- "/common/WORK/fhorvat/Projekti/Svoboda/hamster_KO/datasets"
+
+# Mov10l1 expression path 
+mov10l1_path <- file.path(base_path, "hamster_oocyte_Mov10l.RNAseq/Analysis/expression")
+mov10l1_fpkm_path <- list.files(mov10l1_path, ".*\\.FPKM_mean\\.csv$", full.names = T)
+mov10l1_results_path <- list.files(mov10l1_path, ".*\\.significant_results\\.xlsx$", full.names = T, recursive = T)
+
+# Piwil1 expression path
+piwil1_path <- file.path(base_path, "hamster_MII_Piwil1.RNAseq/Analysis/expression")
+piwil1_fpkm_path <- list.files(piwil1_path, ".*\\.FPKM_mean\\.csv$", full.names = T)
+piwil1_results_path <- list.files(piwil1_path, ".*\\.significant_results\\.xlsx$", full.names = T, recursive = T)
+
+# CNOT6L hamster expression path
+cnot6l_path <- file.path(base_path, "hamster_oocyte_CNOT6L.RNAseq/Analysis/expression")
+cnot6l_fpkm_path <- list.files(cnot6l_path, ".*\\.FPKM_mean\\.csv$", full.names = T)
+
+######################################################## READ DATA
+# read fpkm tables
+mov10l1_fpkm <- readr::read_csv(mov10l1_fpkm_path)
+piwil1_fpkm <- readr::read_csv(piwil1_fpkm_path)
+cnot6l_fpkm <- readr::read_csv(cnot6l_fpkm_path)
+
+# read results
+mov10l1_results <- openxlsx::read.xlsx(mov10l1_results_path, "Mov10l_KO_vs_Mov10l_WT") %>% as_tibble(.)
+piwil1_results <- openxlsx::read.xlsx(piwil1_results_path) %>% as_tibble(.)
+
+######################################################## MAIN CODE
+# set name
+table_name <- "MesAur1.RNA_seq"
+
+# set FPKM cutoff
+fpkm_cutoff <- 10
+
+### plot crosshair plot - Mov10l1 KO vs. Piwil1 KO
+# get logFC values in Mov10l1
+mov10l1_lfc <- 
+  mov10l1_fpkm %>% 
+  dplyr::select(gene_id, Mov10l_KO, Mov10l_WT, Mov10l_HET) %>% 
+  dplyr::mutate(log2FC_Mov10l.KO_vs_WT = log2(Mov10l_KO / Mov10l_WT), 
+                log2FC_Mov10l.KO_vs_HET = log2(Mov10l_KO / Mov10l_HET))
+
+# get logFC values in Mov10l1
+piwil1_lfc <- 
+  piwil1_fpkm %>% 
+  dplyr::select(gene_id, Piwil1_KO, Piwil1_HET_MII = Piwil1_HET) %>% 
+  dplyr::left_join(., cnot6l_fpkm %>% dplyr::select(gene_id, CNOT6L_WT_GV = GV), by = "gene_id") %>%  
+  dplyr::mutate(log2FC_Piwil1.KO_vs_HET = log2(Piwil1_KO / Piwil1_HET_MII),
+                log2FC.MII_HET_vs_GV_WT = log2(Piwil1_HET_MII / CNOT6L_WT_GV))
+
+# join 
+fpkm_tb_plot <- 
+  dplyr::left_join(mov10l1_lfc, piwil1_lfc, by = "gene_id") %>% 
+  dplyr::mutate_at(.vars = vars(contains("log2FC")), ~(replace(., is.nan(.), 0))) %>% 
+  dplyr::left_join(., piwil1_results %>% dplyr::select(gene_id, log2FoldChange), by = "gene_id") %>% 
+  dplyr::mutate(regulation = ifelse(log2FoldChange > 0, "up", "down"), 
+                regulation = replace(regulation, is.na(regulation), "no"), 
+                regulation = factor(regulation, levels = c("no", "up", "down"))) %>%
+  dplyr::arrange(regulation)
+
+# get limits
+axis_limits <-
+  c(fpkm_tb_plot$log2FC_Piwil1.KO_vs_HET, fpkm_tb_plot$log2FC.MII_HET_vs_GV_WT) %>%
+  replace(is.infinite(.), 0) %>% 
+  abs(.) %>%
+  max(.) %>%
+  ceiling(.)
+
+# crosshair plot
+cross_plot <-
+  ggplot(fpkm_tb_plot, aes(x = log2FC_Piwil1.KO_vs_HET, y = log2FC.MII_HET_vs_GV_WT, color = regulation, alpha = regulation)) +
+  geom_point(shape = 16, size = 3) +
+  scale_colour_manual(labels = c(no = "not significant", down = "downregulated", up = "upregulated"),
+                      values = c(no = "gray50", up = "red2", down = "#1a75ff")) +
+  scale_alpha_manual(values = c(no = 0.5, down = 1, up = 1)) +
+  scale_x_continuous(limits = c(-axis_limits, axis_limits), breaks = seq(-axis_limits, axis_limits, 2)) +
+  scale_y_continuous(limits = c(-axis_limits, axis_limits), breaks = seq(-axis_limits, axis_limits, 2)) +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0) +
+  xlab(str_c("log2 (Piwil1 KO MII / Piwil1 HET MII) FPKM")) +
+  ylab(str_c("log2 (Piwil1 HET MII / 125PE WT GV) FPKM")) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(axis.title.x = element_text(size = 15, vjust = - 0.2),
+        axis.title.y = element_text(size = 15, vjust = 0.3),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+# save plot
+ggsave(filename = file.path(outpath, str_c(table_name, "Piwil1_KO_HET_vs_125PE_WT_GV.Piwil1_colored.log2_ratio.crosshair", "jpg", sep = ".")),
+       plot = cross_plot,
+       width = 10, height = 10)
+
