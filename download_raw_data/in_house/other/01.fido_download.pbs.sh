@@ -10,7 +10,7 @@ cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
 # set URL
-URL="http://fido.iabio.eu/xxx"
+URL="http://fido.iabio.eu/191021_A00380_0030_AHFWMWDRXX_sdcdLSWxnjsdAKSW/"
 
 # ----------------Commands------------------- #
 # download data

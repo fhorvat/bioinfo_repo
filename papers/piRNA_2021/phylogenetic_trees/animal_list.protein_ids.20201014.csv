@@ -1,0 +1,34 @@
+common_name,full_name,scientific_name,uniprot_id,NCBI_reference,ensembl_protein_id
+tunicate,tunicate,Phallusia mammillata,A0A6F9DKD2,NA,NA
+lamprey,lamprey,Petromyzon marinus,NA,NA,NA
+shark,elephant shark,Callorhinchus milii,A0A4W3J6K4 ,NA,ENSCMIP00000037747.1
+coelacanth,coelacanth,Latimeria chalumnae,H3AI81,NA,ENSLACP00000009352.1
+zebrafish,zebrafish,Danio rerio,Q08BA5,NP_001070795.1,NA
+fugu,fugu,Takifugu rubripes,H2V0D5,XP_011605779.1,ENSTRUP00000042665.2
+medaka,Japanese medaka HNI,Oryzias latipes,H2LCN9 ,XP_004069949.1?,ENSORLP00000003679.2
+salmon,Atlantic salmon,Salmo salar,A0A1S3KNM2,XP_013979939.1,ENSSSAP00000066182.1
+xenopus,tropical clawed frog,Xenopus tropicalis,Q0IHQ7,NP_001072624.1?,ENSXETP00000096495.1
+toad,Leishan spiny toad,Leptobrachium leishanense,NA,NA,ENSLLEP00000013261.1
+turtle,three-toed box turtle,Terrapene carolina triunguis,A0A674IET0,NA,ENSTMTP00000006272.1
+crocodile,Australian saltwater crocodile,Crocodylus porosus,NA,NA,ENSCPRP00005016194.1
+lizard,Anole lizard,Anolis carolinensis,G1KAK6,XP_008109418.1,ENSACAP00000002249.3
+chicken,chicken,Gallus gallus,A0A1D5PKW6,NA,ENSGALP00000053479.2
+finch,zebra finch,Taeniopygia guttata,H0Z0H6,NA,ENSTGUP00000004063.2
+owl,Eurasian eagle-owl,Bubo bubo,NA,NA,ENSBOBP00000012669.1
+platypus,platypus,Ornithorhynchus anatinus,NA,XP_007659750.1,NA
+koala,koala,Phascolarctos cinereus,NA,XP_020838560.1,NA
+opossum,opossum,Monodelphis domestica,F6YK83,NA,ENSMODP00000037970.3
+bat,microbat,Myotis lucifugus,G1P7T8,NA,ENSMLUP00000006201.2
+hedgehog,hedgehog,Erinaceus europaeus,A0A1S2ZHJ7,XP_007519495.1,NA
+cow,cow,Bos taurus,G3X7G5,NA,ENSBTAP00000027109.5
+pig,pig,Sus scrofa,A0A480DKQ1,NA,NA
+horse,horse,Equus caballus,F7AQ92,NA,ENSECAP00000009228.3
+elephant,elephant,Loxodonta africana,G3UKW3,NA,ENSLAFP00000028472.1
+whale,beluga whale,Delphinapterus leucas,A0A2Y9QAH6,NA,NA
+human,human,Homo sapiens,Q9BXT6,NP_001157576.1,ENSP00000262794.5
+rhesus,macaque,Macaca mulatta,A0A1D5R3J4,NA,ENSMMUP00000054880.2
+dog,dog,Canis lupus familiaris,E2R1J7,NA,ENSCAFP00000001004.4
+cat,cat,Felis catus,NA,XP_003989463.2,NA
+mouse,mouse,Mus musculus,G3X8T0,NP_112550.2,ENSMUSP00000015509.4
+golden hamster,golden hamster,Mesocricetus auratus,A0A1U7QJ29,NA,NA
+guinea pig,guinea pig,Cavia porcellus,H0UXJ7,NA,ENSCPOP00000001821.3

@@ -11,14 +11,9 @@ cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
 ASP_EXE="/common/WORK/fhorvat/programi/Aspera/cli/bin/aspera"
-
-USER=
-HOST=
-PASS=
-
-ASP_PAR="--user=$USER \
---host=$HOST \
---password=$PASS \
+ASP_PAR="--user=malikr@img.cas.cz \
+--host=w3-09.genecore.embl.de \
+--password=Kralik74! \
 --insecure"
 
 # ----------------Commands------------------- #

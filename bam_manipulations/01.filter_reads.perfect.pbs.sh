@@ -19,11 +19,17 @@ INPUT_DIR=..
 IN_SEQ=($(find $INPUT_DIR -maxdepth 1 -name "*.bam"))
 FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
-BASE=${BASE%.bam}.unique
+BASE=${BASE%.bam}.perfect
 
 # ----------------Commands------------------- #
-# get only unique reads (NH tag == 0)
-bamtools filter -in $FILE -out ${BASE}.bam -tag "nM:0"
+# get only perfectly mapped reads (nM tag == 0)
+#bamtools filter -in $FILE -out ${BASE}.bam -tag "nM:0"
+
+# get only perfectly mapped reads without inserts and deletions
+samtools view -h ${FILE} | \
+awk -F '\t' '($1 ~ /^@/ || $6 !~/I/) && ($1 ~ /^@/ || $6 !~/D/)' | \
+samtools view -Sb - | \
+bamtools filter -out ${BASE}.bam -tag "nM:0" 
 
 # index
 samtools index ${BASE}.bam

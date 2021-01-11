@@ -204,8 +204,9 @@ if(exploratory_analysis == "yes"){
   pca <-
     rlog_df %>%
     t(.) %>%
-    stats::prcomp(.)
-  
+    .[ , which(apply(., 2, var) != 0)] %>% 
+    stats::prcomp(., scale. = T)
+   
   # gets percent of variance for each principal component
   percentVar <- (pca$sdev)^2 / sum((pca$sdev)^2)
   
@@ -217,6 +218,13 @@ if(exploratory_analysis == "yes"){
     dplyr::left_join(sample_table_dds , by = "sample_id") %>%
     dplyr::mutate(sample_id = str_replace(sample_id, "s_|r", "") %>% str_replace_all(., "_", " "))
   
+  # set axis limits
+  axis_lim <- 
+    c(pca_tb$PC1, pca_tb$PC2) %>% 
+    abs(.) %>% 
+    max(.) %>% 
+    ceiling(.)
+    
   
   ### plot
   # create bare plot object
@@ -228,24 +236,47 @@ if(exploratory_analysis == "yes"){
     # color = first grouping variable
     pca_plot <-
       pca_plot +
-      geom_point(aes_string(color = grouping_variables[1], fill = grouping_variables[1]), size = 7.5, shape = 21) +
+      geom_point(aes_string(fill = grouping_variables[1]), color = "black", size = 10, shape = 21) +
       guides(color = guide_legend(override.aes = list(shape = 23, size = 5)))
     
   }else{
     
+    # get length of second grouping variables
+    group_2_length <- length(unique(unlist(pca_tb[, grouping_variables[2]])))
+
     # color = first grouping variable, shape = second grouping variable
-    pca_plot <-
-      pca_plot +
-      geom_point(aes_string(color = grouping_variables[1], fill = grouping_variables[1], shape = grouping_variables[2]), size = 7.5) +
-      guides(color = guide_legend(override.aes = list(shape = 23, size = 5)),
-             shape = guide_legend(override.aes = list(size = 5)))
-    
+    if(group_2_length <= 4){
+      
+      # if second grouping variable is 4 or less unique values, plot with outline 
+      pca_plot <-
+        pca_plot +
+        geom_point(aes_string(fill = grouping_variables[1], shape = grouping_variables[2]), 
+                   color = "black", size = 10) +
+        scale_shape_manual(values = (21:25)[1:group_2_length]) + 
+        guides(fill = guide_legend(override.aes = list(shape = 23, size = 5)),
+               shape = guide_legend(override.aes = list(size = 5)))
+      
+    }else{
+      
+      # if second grouping variable is longer than 4 unique values, plot without outline
+      pca_plot <-
+        pca_plot +
+        geom_point(aes_string(color = grouping_variables[1], fill = grouping_variables[1], shape = grouping_variables[2]), 
+                   size = 10) +
+        guides(fill = guide_legend(override.aes = list(shape = 23, size = 5)),
+               shape = guide_legend(override.aes = list(size = 5)))
+      
+    }
+
   }
   
   # add themes and save plot without labels
   pca_plot <-
     pca_plot +
     theme_bw() +
+    scale_x_continuous(limits = c(-axis_lim, axis_lim)) +
+    scale_y_continuous(limits = c(-axis_lim, axis_lim)) +
+    # scale_fill_manual(values = c("Mov10l_WT" = "#7f7f7f", "Mov10l_KO" = "#ff0000")) +
     theme(axis.text.x = element_text(size = 15),
           axis.text.y = element_text(size = 15),
           panel.grid.major = element_blank(),
@@ -278,7 +309,7 @@ if(exploratory_analysis == "yes"){
                                              "expl_plot", "PCA.PC1_PC2", "rlog", str_c(grouping_variables, collapse = "_"),
                                              "labeled", "png", sep = ".")),
          plot = pca_plot, width = 10, height = 10)
-  
+ 
   
   ### distance heatmap
   # calculate distance
@@ -450,8 +481,7 @@ if(results_groups != "no"){
     # filter table
     results_df_sign <-
       results_list[[result]]  %>%
-      dplyr::filter(padj <= padj_cut) %>% 
-      dplyr::filter_at(.vars = vars(matches("\\.FPKM")), any_vars(. > fpkm_cut))
+      dplyr::filter(padj <= padj_cut)
     
     # return
     return(results_df_sign)
