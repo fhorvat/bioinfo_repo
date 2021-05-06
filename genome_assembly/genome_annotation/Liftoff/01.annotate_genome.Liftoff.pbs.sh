@@ -14,27 +14,34 @@ MEMORY=60G
 
 # target genome
 INPUT_DIR=/common/DB/genome_reference/golden_hamster/Siomi_assembly.fixed
-IN_GENOME=($(find $INPUT_DIR -name "*.fasta"))
+IN_GENOME=($(find $INPUT_DIR -maxdepth 1 -name "*.fasta"))
 FILE_GENOME=${IN_GENOME[0]}
 BASE_GENOME=${FILE_GENOME#${INPUT_DIR}/}
 BASE_GENOME=${BASE_GENOME%.fasta}
 
 # query genome
-INPUT_DIR=/common/DB/genome_reference/golden_hamster/Siomi_assembly.fixed/annotation/NCBI_references
-IN_QUERY=($(find -L $INPUT_DIR -name "*genomic.fna"))
+INPUT_DIR=.
+IN_QUERY=($(find $INPUT_DIR -maxdepth 1 -name "*.fna"))
 FILE_QUERY=${IN_QUERY[0]}
-FILE_GTF=${FILE_QUERY/.fna/.gff}
 BASE_QUERY=${FILE_QUERY#${INPUT_DIR}/}
-BASE_QUERY=${BASE_QUERY%_genomic.fna}
+BASE_QUERY=${BASE_QUERY%.fna}
+BASE_QUERY="Siomi"
+
+# query .gtf
+INPUT_DIR=.
+IN_GTF=($(find $INPUT_DIR -maxdepth 1 -name "*gff"))
+FILE_GTF=${IN_GTF[0]}
+BASE_GTF=${FILE_GTF#${INPUT_DIR}/}
+BASE_GTF=${BASE_GTF%.gff}
 
 # script
-SCRIPT=/common/WORK/fhorvat/programi/python/Python3/bin/liftoff
+SCRIPT=/common/WORK/fhorvat/programi/python/packages/bin/liftoff
 
 # ----------------Commands------------------- #
 # extract introns and coverage from bam file
 $SCRIPT \
--t ${FILE_GENOME} \
--r ${FILE_QUERY} \
 -g ${FILE_GTF} \
 -p ${THREADS} \
--o ./${BASE_GENOME}.${BASE_QUERY}.liftoff.gff
+-o ./${BASE_GTF}.${BASE_QUERY}.liftoff.gff \
+${FILE_GENOME} \
+${FILE_QUERY}
