@@ -145,7 +145,7 @@ if(!single_end){
                   total = rRNA + repeats + exon + other,
                   genome.mapped_minus_rDNA = genome.mapped_minus_rDNA) %>%
     dplyr::select(sample_id, rRNA, repeats, exon, other, total, genome.mapped_minus_rDNA) %T>%
-    readr::write_delim(., path = file.path(outpath, str_c(bam_name, ".read_stats.txt")), delim = "\t")
+    readr::write_delim(., file = file.path(outpath, str_c(bam_name, ".read_stats.txt")), delim = "\t")
   
 }else{
   
@@ -157,6 +157,6 @@ if(!single_end){
                   total = rRNA + repeats + exon + other,
                   genome.mapped_minus_rDNA = total - rRNA) %>%
     dplyr::select(sample_id, rRNA, repeats, exon, other, total, genome.mapped_minus_rDNA) %T>%
-    readr::write_delim(., path = file.path(outpath, str_c(bam_name, ".read_stats.txt")), delim = "\t")
+    readr::write_delim(., file = file.path(outpath, str_c(bam_name, ".read_stats.txt")), delim = "\t")
   
 }

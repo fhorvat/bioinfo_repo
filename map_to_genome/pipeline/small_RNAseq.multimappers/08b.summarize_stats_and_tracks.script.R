@@ -75,4 +75,4 @@ stats_and_tracks <-
                 subset = ifelse(is.na(subset), "whole_set", subset),
                 sample_id = str_remove(sample_id, str_c("\\.", subset))) %>%
   dplyr::select(experiment, sample_id, subset, contains("coverage"), raw.individual_reads, everything()) %T>%
-  readr::write_csv(., path = file.path(outpath, str_c("log.", unique(.$experiment), ".stats_and_tracks.csv")))
+  readr::write_csv(., file = file.path(outpath, str_c("log.", unique(.$experiment), ".stats_and_tracks.csv")))
