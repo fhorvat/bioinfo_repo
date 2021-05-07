@@ -83,4 +83,4 @@ tracks_tbl_tidy <-
 stats_and_tracks <-
   right_join(stats_tbl, tracks_tbl_tidy, by = "sample_id") %>%
   dplyr::select(experiment, sample_id, raw.coverage, RPM_scaled.coverage, raw.individual_reads, everything()) %T>%
-  readr::write_csv(., path = file.path(outpath, str_c("log.", experiment, ".stats_and_tracks.csv")))
+  readr::write_csv(., file = file.path(outpath, str_c("log.", experiment, ".stats_and_tracks.csv")))

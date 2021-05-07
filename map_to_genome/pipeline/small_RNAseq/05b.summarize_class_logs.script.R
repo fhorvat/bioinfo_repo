@@ -36,4 +36,4 @@ log_class_df <-
   tidyr::pivot_wider(sample_id, names_from = read_group, values_from = count) %>% 
   dplyr::mutate(mapped_total = rowSums(.[, 2:12])) %>% 
   dplyr::select(sample_id, mapped_total, everything()) %T>% 
-  readr::write_delim(x = ., path = "log.read_stats.txt", delim = "\t")
+  readr::write_delim(x = ., file = "log.read_stats.txt", delim = "\t")

@@ -62,7 +62,7 @@ if(nrow(log_class_df) > 0){
     dplyr::mutate(rDNA_45S.input = NA, rDNA_45S.mapped_total = NA, rDNA_45S.uniquely_mapped = NA,
                   rDNA_45S.mapped_to_multiple_loci = NA, rDNA_45S.unmapped = NA) %>%
     dplyr::mutate_all(.funs = list(~as.character(.))) %T>%
-    readr::write_delim(x = ., path = "log.read_stats.txt", delim = "\t")
+    readr::write_delim(x = ., file = "log.read_stats.txt", delim = "\t")
   
 }else{
   
@@ -76,7 +76,7 @@ if(nrow(log_class_df) > 0){
     dplyr::mutate(rDNA_45S.input = NA, rDNA_45S.mapped_total = NA, rDNA_45S.uniquely_mapped = NA,
                   rDNA_45S.mapped_to_multiple_loci = NA, rDNA_45S.unmapped = NA) %>%
     dplyr::mutate_all(.funs = list(~as.character(.))) %T>%
-    readr::write_delim(x = ., path = "log.read_stats.txt", delim = "\t")
+    readr::write_delim(x = ., file = "log.read_stats.txt", delim = "\t")
   
 }
 

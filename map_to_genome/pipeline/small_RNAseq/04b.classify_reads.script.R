@@ -241,7 +241,7 @@ if(class_algorithm == "data.table"){
     setcolorder(., c("read_group", "count", "sample_id"))
   
   # write
-  readr::write_delim(x = class_sum, path = file.path(outpath, str_c(bam_name, "read_stats", "txt", sep = ".")), delim = "\t")
+  readr::write_delim(x = class_sum, file = file.path(outpath, str_c(bam_name, "read_stats", "txt", sep = ".")), delim = "\t")
   
 }
 
@@ -300,6 +300,6 @@ if(class_algorithm == "loop"){
   reads_class_sum %<>%
     dplyr::mutate(sample_id = bam_name,
                   experiment = experiment_name) %T>%
-    readr::write_delim(x = ., path = file.path(outpath, str_c(bam_name, "read_stats", "txt", sep = ".")), delim = "\t")
+    readr::write_delim(x = ., file = file.path(outpath, str_c(bam_name, "read_stats", "txt", sep = ".")), delim = "\t")
   
 }
