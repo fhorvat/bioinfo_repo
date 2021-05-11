@@ -11,6 +11,7 @@ cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
 THREADS=6
+MEMORY=30g
 
 IN_DIR=../Links
 IN_SEQ=($IN_DIR/*.txt.gz)
@@ -37,10 +38,10 @@ threads=$THREADS"
 
 # ----------------Commands------------------- #
 # trim right adapter
-bbduk.sh in=$FILE out=${BASE}.atrim.txt.gz ref=$ADAPTER stats=${BASE}.atrim.stats $BBDUK_PAR1
+bbduk.sh -Xmx$MEMORY in=$FILE out=${BASE}.atrim.txt.gz ref=$ADAPTER stats=${BASE}.atrim.stats $BBDUK_PAR1
 
 # force trim 4 bases from right and left
-bbduk.sh in=${BASE}.atrim.txt.gz out=${BASE}.txt.gz stats=${BASE}.ftrim.stats $BBDUK_PAR2
+bbduk.sh -Xmx$MEMORY in=${BASE}.atrim.txt.gz out=${BASE}.txt.gz stats=${BASE}.ftrim.stats $BBDUK_PAR2
 
 # remove 
 [ -f "${BASE}.txt.gz" ] && rm ${BASE}.atrim.txt.gz

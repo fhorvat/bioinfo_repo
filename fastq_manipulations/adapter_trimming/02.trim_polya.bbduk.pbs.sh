@@ -11,6 +11,7 @@ cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
 THREADS=6
+MEMORY=30g
 
 IN_DIR=.
 IN_SEQ=($(find $IN_DIR -name "*.txt.gz" -not -name "*polya*"))
@@ -31,4 +32,4 @@ threads=$THREADS"
 
 # ----------------Commands------------------- #
 # right trim
-bbduk.sh in=$FILE out=${BASE}.polya.txt.gz stats=${BASE}.polya.stats $BBDUK_PAR
+bbduk.sh -Xmx$MEMORY in=$FILE out=${BASE}.polya.txt.gz stats=${BASE}.polya.stats $BBDUK_PAR

@@ -11,6 +11,7 @@ cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
 THREADS=6
+MEMORY=30g
 
 IN_DIR=../Links
 IN_SEQ=($(find $IN_DIR -name "*.txt.gz"))
@@ -32,4 +33,4 @@ threads=$THREADS"
 
 # ----------------Commands------------------- #
 # right trim
-bbduk.sh in=$FILE out=${BASE}.txt.gz ref=$ADAPTER stats=${BASE}.stats $BBDUK_PAR
+bbduk.sh -Xmx$MEMORY in=$FILE out=${BASE}.txt.gz ref=$ADAPTER stats=${BASE}.stats $BBDUK_PAR
