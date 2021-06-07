@@ -74,7 +74,7 @@ dir.create(outpath)
 sample_table_path <- list.files(documentation_path, ".*sampleTable\\.csv", full.names = T)
 
 # reads stats path
-reads_stats_path <- file.path(mapped_path, "4_library_size", "library_sizes.txt")
+reads_stats_path <- file.path(mapped_path, "../4_library_size", "library_sizes.txt")
 
 # FPM path
 fpm_path <- list.files(inpath, str_c(features_name, ".FPM.csv"), full.names = T)
@@ -84,7 +84,7 @@ fpm_mean_path <- list.files(inpath, str_c(features_name, ".FPM_mean.csv"), full.
 # read counts from featureCounts
 counts_tb <-
   readr::read_delim(counts_path, delim = "\t", comment = "#") %>%
-  set_colnames(., basename(colnames(.))) %>% 
+  set_colnames(., basename(colnames(.))) %>%
   dplyr::mutate(Geneid = make.unique(Geneid))
 
 # read sample table
@@ -111,36 +111,36 @@ features_tb <-
 sample_table_dds <-
   sample_table %>%
   as.data.table(.) %>%
-  .[sample_id %in% str_remove_all(colnames(counts_tb), "\\.24to31nt|\\.21to23nt|\\.genome\\.Aligned\\.sortedByCoord\\.out\\.bam|\\.total\\.bam|\\.bam$"), ] %>%
+  .[sample_id %in% str_remove_all(colnames(counts_tb), "\\.24to31nt|\\.19to32nt|\\.21to23nt|\\.genome\\.Aligned\\.sortedByCoord\\.out\\.bam|\\.total\\.bam|\\.bam$"), ] %>%
   .[, c("sample_id", grouping_variables), with = F] %>%
   .[, grouped_variables := do.call(str_c, c(.SD, sep = "_")), .SDcols = grouping_variables] %>%
   as.data.frame(.) %>%
   set_rownames(., .$sample_id)
 
 ## read stats for library sizes
-# get only 21-23nt reads
+# get only 19-32nt reads
 reads_stats %<>%
   dplyr::filter(!is.na(sample_id),
-                str_detect(sample_id, "21to23nt$")) %>%
-  dplyr::mutate(sample_id = str_remove(sample_id, "\\.21to23nt$")) %>%
+                str_detect(sample_id, "\\.19to32nt$")) %>%
+  dplyr::mutate(sample_id = str_remove(sample_id, "\\.19to32nt$")) %>%
   as.data.table(.)
 
 ## summarized experiment
 # counts table
-se <- 
+se <-
   counts_tb %>%
-  dplyr::select(-c(Chr:Length)) %>% 
-  dplyr::rename(gene_id = Geneid) %>% 
-  dplyr::mutate_if(is.numeric, round, digits = 0) %>% 
-  as.data.frame(.) %>% 
-  set_rownames(., .$gene_id) %>% 
-  dplyr::select(-gene_id) %>% 
+  dplyr::select(-c(Chr:Length)) %>%
+  dplyr::rename(gene_id = Geneid) %>%
+  dplyr::mutate_if(is.numeric, round, digits = 0) %>%
+  as.data.frame(.) %>%
+  set_rownames(., .$gene_id) %>%
+  dplyr::select(-gene_id) %>%
   as.matrix(.)
 
 # filter summarizedExperiment to include only chosen stage, set colData
 se_filt <- se
 se_filt <- SummarizedExperiment(list(counts = se_filt))
-colnames(se_filt) <- str_remove_all(colnames(se_filt), "\\.24to31nt|\\.21to23nt|\\.genome\\.Aligned\\.sortedByCoord\\.out\\.bam|\\.total\\.bam|\\.bam$")
+colnames(se_filt) <- str_remove_all(colnames(se_filt), "\\.24to31nt|\\.21to23nt|\\.19to32nt|\\.genome\\.Aligned\\.sortedByCoord\\.out\\.bam|\\.total\\.bam|\\.bam$")
 se_filt <- se_filt[, colnames(se_filt)[match(rownames(sample_table_dds), colnames(se_filt))]]
 
 # check if colnames of assay match rownames of sample table DataFrame
@@ -159,168 +159,264 @@ if(all(colnames(se_filt) == rownames(sample_table_dds))){
 ## FPM data for plots
 # data for plots = log transformed counts
 log_df <-
-  fpm_tb %>% 
-  dplyr::select(-coordinates) %>% 
-  dplyr::filter_at(.vars = vars(starts_with("s_")), .vars_predicate = any_vars(. > 0.5)) %>% 
-  dplyr::mutate_at(.vars = vars(starts_with("s_")), .funs = list(~ log2(. + 0.1))) %>% 
-  as.data.frame(.) %>% 
-  tibble::column_to_rownames(., var = "gene_id") %>% 
+  fpm_tb %>%
+  dplyr::select(-coordinates) %>%
+  dplyr::filter_at(.vars = vars(starts_with("s_")), .vars_predicate = any_vars(. > 0.5)) %>%
+  dplyr::mutate_at(.vars = vars(starts_with("s_")), .funs = list(~ log2(. + 0.1))) %>%
+  as.data.frame(.) %>%
+  tibble::column_to_rownames(., var = "gene_id") %>%
   as.matrix(.)
 
 ## DDS
 # make DESeqDataSet
-dds <- DESeqDataSet(se_filt, design = ~grouped_variables)
-
+if(length(unique(sample_table_dds$grouped_variables)) == 1){
+  dds <- DESeqDataSet(se_filt, design = ~1)
+}else{
+  if(length(unique(sample_table_dds$grouped_variables)) > 1){
+    dds <- DESeqDataSet(se_filt, design = ~grouped_variables)
+  }else{
+    stop("Somethin' is wrong with your grouping_variables!")
+  }
+}
 
 #### exploratory analysis
-### PCA plot 
-## calculate
-# data for PCA = rlog transformed counts
-rlog_df <-
-  rlog(dds, blind = T) %>%
-  assay(.)
-
-# calculates pca
-pca <-
-  rlog_df %>%
-  t(.) %>%
-  stats::prcomp(.)
-
-# gets percent of variance for each principal component
-percentVar <- (pca$sdev)^2 / sum((pca$sdev)^2)
-
-# makes table for ggplot
-pca_tb <-
-  tibble(PC1 = pca$x[, 1],
-         PC2 = pca$x[, 2],
-         sample_id = colnames(log_df)) %>%
-  dplyr::left_join(sample_table_dds , by = "sample_id") %>%
-  dplyr::mutate(sample_id = str_replace(sample_id, "s_|r", "") %>% str_replace_all(., "_", " "))
-
-## plot
-# create bare plot object
-pca_plot <- ggplot(data = pca_tb, aes(x = PC1, y = PC2, label = sample_id))
-
-# if there is only one grouping variable use only color, if there is more use also a shape
-if(length(grouping_variables) == 1){
+if(exploratory_analysis == "yes"){
   
-  # color = first grouping variable
-  pca_plot <-
-    pca_plot +
-    geom_point(aes_string(color = grouping_variables[1], fill = grouping_variables[1]), size = 5, shape = 21) +
-    guides(color = guide_legend(override.aes = list(shape = 23, size = 5)))
+  ## calculate
+  # data for PCA = rlog transformed counts
+  rlog_df <-
+    rlog(dds, blind = T) %>%
+    assay(.)
   
-}else{
+  ### PCA plot
+  if(length(grouping_variables) > 1){
+    
+    # calculates pca
+    pca <-
+      rlog_df %>%
+      t(.) %>%
+      .[ , which(apply(., 2, var) != 0)] %>%
+      stats::prcomp(., scale. = T)
+    
+    # gets percent of variance for each principal component
+    percentVar <- (pca$sdev)^2 / sum((pca$sdev)^2)
+    
+    # makes table for ggplot
+    pca_tb <-
+      tibble(PC1 = pca$x[, 1],
+             PC2 = pca$x[, 2],
+             sample_id = colnames(log_df)) %>%
+      dplyr::left_join(sample_table_dds , by = "sample_id") %>%
+      dplyr::mutate(sample_id = str_replace(sample_id, "s_|r", "") %>% str_replace_all(., "_", " "))
+    
+    # set axis limits
+    axis_lim <-
+      c(pca_tb$PC1, pca_tb$PC2) %>%
+      abs(.) %>%
+      max(.) %>%
+      ceiling(.)
+    
+    
+    ### plot
+    # create bare plot object
+    pca_plot <- ggplot(data = pca_tb, aes(x = PC1, y = PC2, label = sample_id))
+    
+    # if there is only one grouping variable use only color, if there is more use also a shape
+    if(length(grouping_variables) == 1){
+      
+      # color = first grouping variable
+      pca_plot <-
+        pca_plot +
+        geom_point(aes_string(fill = grouping_variables[1]), color = "black", size = 10, shape = 21) +
+        guides(color = guide_legend(override.aes = list(shape = 23, size = 5)))
+      
+    }else{
+      
+      # get length of second grouping variables
+      group_2_length <- length(unique(unlist(pca_tb[, grouping_variables[2]])))
+      
+      # color = first grouping variable, shape = second grouping variable
+      if(group_2_length <= 4){
+        
+        # if second grouping variable is 4 or less unique values, plot with outline
+        pca_plot <-
+          pca_plot +
+          geom_point(aes_string(fill = grouping_variables[1], shape = grouping_variables[2]),
+                     color = "black", size = 10) +
+          scale_shape_manual(values = (21:25)[1:group_2_length]) +
+          guides(fill = guide_legend(override.aes = list(shape = 23, size = 5)),
+                 shape = guide_legend(override.aes = list(size = 5)))
+        
+      }else{
+        
+        # if second grouping variable is longer than 4 unique values, plot without outline
+        pca_plot <-
+          pca_plot +
+          geom_point(aes_string(color = grouping_variables[1], fill = grouping_variables[1], shape = grouping_variables[2]),
+                     size = 10) +
+          guides(fill = guide_legend(override.aes = list(shape = 23, size = 5)),
+                 shape = guide_legend(override.aes = list(size = 5)))
+        
+      }
+      
+    }
+    
+    # add themes and save plot without labels
+    pca_plot <-
+      pca_plot +
+      theme_bw() +
+      scale_x_continuous(limits = c(-axis_lim, axis_lim)) +
+      scale_y_continuous(limits = c(-axis_lim, axis_lim)) +
+      # scale_fill_manual(values = c("Mov10l_WT" = "#7f7f7f", "Mov10l_KO" = "#ff0000")) +
+      theme(axis.text.x = element_text(size = 15),
+            axis.text.y = element_text(size = 15),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank()) +
+      theme(legend.title = element_blank()) +
+      theme(legend.position = "none") +
+      theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank())
+    
+    # save plot
+    ggsave(filename = file.path(outpath, str_c("miRBase",
+                                               "plot", "PCA.PC1_PC2", "rlog", str_c(grouping_variables, collapse = "_"),
+                                               "png", sep = ".")),
+           plot = pca_plot, width = 10, height = 10)
+    
+    # add labels
+    pca_plot <-
+      pca_plot +
+      geom_label_repel(aes(label = sample_id),
+                       fontface = "bold", color = "black", box.padding = 0.35,
+                       point.padding = 0.5, segment.color = "grey50") +
+      xlab(paste0("PC1: ", round(percentVar[1] * 100), "% variance")) +
+      ylab(paste0("PC2: ", round(percentVar[2] * 100), "% variance")) +
+      theme(axis.title.x = element_text(size = 13),
+            axis.title.y = element_text(size = 13, angle = 90)) +
+      theme(legend.position = "bottom")
+    
+    # save labeled plot
+    ggsave(filename = file.path(outpath, str_c("miRBase",
+                                               "plot", "PCA.PC1_PC2", "rlog", str_c(grouping_variables, collapse = "_"),
+                                               "labeled.png", sep = ".")),
+           plot = pca_plot, width = 10, height = 10)
+    
+    
+    ### distance heatmap
+    # calculate distance
+    dist_df <-
+      rlog_df %>%
+      t(.) %>%
+      dist(.)
+    
+    # make matrix
+    dist_matrix <- as.matrix(dist_df)
+    colnames(dist_matrix) <- NULL
+    
+    # annotation data.frame
+    annotation_df <-
+      sample_table_dds %>%
+      dplyr::select(-c(sample_id, grouped_variables))
+    
+    # rownames annotation
+    annotation_rownames <-
+      rownames(dist_matrix) %>%
+      str_remove_all(., "^s_|\\.PE$|\\.SE$") %>%
+      str_replace_all(., "_", " ")
+    
+    # plot
+    pheatmap::pheatmap(dist_matrix,
+                       clustering_distance_rows = dist_df,
+                       clustering_distance_cols = dist_df,
+                       col = colorRampPalette(rev(brewer.pal(9, "Blues")))(255),
+                       annotation_row = annotation_df,
+                       labels_row = annotation_rownames,
+                       file = file.path(outpath,
+                                        str_c("miRBase",
+                                              "plot", "dist_heatmap", "rlog", str_c(grouping_variables, collapse = "_"),
+                                              "labeled", "png", sep = ".")),
+                       height = 10,
+                       width = 14)
+    
+  }
   
-  # color = first grouping variable, shape = second grouping variable
-  pca_plot <-
-    pca_plot +
-    geom_point(aes_string(color = grouping_variables[1], fill = grouping_variables[1], shape = grouping_variables[2]), size = 7.5) +
-    guides(color = guide_legend(override.aes = list(shape = 23, size = 5)),
-           shape = guide_legend(override.aes = list(size = 5)))
+  
+  
+  # ### FPM heatmap ####
+  # # make matrix
+  # heatmap_matrix <- as.matrix(log_df)
+  # rownames(heatmap_matrix) <- NULL
+  # 
+  # # annotation data.frame
+  # annotation_df <-
+  #   sample_table_dds %>%
+  #   dplyr::select(-c(sample_id, grouped_variables))
+  # 
+  # # sort rows and columns
+  # mat_cluster_cols <- sort_hclust(hclust(dist(t(heatmap_matrix))))
+  # mat_cluster_rows <- sort_hclust(hclust(dist(heatmap_matrix)))
+  # 
+  # # plot
+  # pheatmap::pheatmap(heatmap_matrix,
+  #                    col = viridis(10),
+  #                    annotation_col = annotation_df,
+  #                    cluster_cols = mat_cluster_cols,
+  #                    cluster_rows = mat_cluster_rows,
+  #                    file = file.path(outpath,
+  #                                     str_c("miRBase",
+  #                                           "plot", "FPM_heatmap", "log", str_c(grouping_variables, collapse = "_"),
+  #                                           "png", sep = ".")),
+  #                    height = 15,
+  #                    width = 10)
+  
+  
+  ### FPKM correlation
+  # FPKM values
+  fpm_corr_df <-
+    fpm_tb %>%
+    dplyr::select(colnames(se_filt))
+  
+  ### correlation matrix plot
+  # create plot
+  cor_pairs <- GGally::ggpairs(fpm_corr_df, diag = "blank")
+  
+  # limit axis on all plots
+  for(i in 2:cor_pairs$nrow) {
+    for(j in 1:(i - 1)) {
+      cor_pairs[i, j] <-
+        cor_pairs[i, j] +
+        scale_x_continuous(limits = c(0, 200)) +
+        scale_y_continuous(limits = c(0, 200))
+    }
+  }
+  
+  # add themes
+  cor_pairs <-
+    cor_pairs +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1))
+  
+  # save plot
+  png(filename = file.path(outpath,
+                           str_c("miRBase",
+                                 "plot",
+                                 "correlation_FPM",
+                                 "png", sep = ".")),
+      width = 15, height = 15, units = "in", res = 300)
+  
+  print(cor_pairs)
+  dev.off()
   
 }
 
-# add labels, themes and save plot
-pca_plot <-
-  pca_plot +
-  xlab(paste0("PC1: ", round(percentVar[1] * 100), "% variance")) +
-  ylab(paste0("PC2: ", round(percentVar[2] * 100), "% variance")) +
-  theme_bw() +
-  theme(axis.title.x = element_text(size = 15, vjust = - 0.2),
-        axis.title.y = element_text(size = 15, vjust = - 0.2),
-        axis.text.x = element_text(size = 15),
-        axis.text.y = element_text(size = 15),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-
-# save plot
-ggsave(filename = file.path(outpath, str_c("miRBase",
-                                           "plot", "PCA.PC1_PC2", "rlog", str_c(grouping_variables, collapse = "_"),
-                                           "png", sep = ".")),
-       plot = pca_plot, width = 12, height = 10)
-
-# add labels
-pca_plot <-
-  pca_plot +
-  geom_label_repel(aes(label = sample_id), fontface = "bold", color = "black", box.padding = 0.35, point.padding = 0.5, segment.color = "grey50")
-
-# save labeled plot
-ggsave(filename = file.path(outpath, str_c("miRBase",
-                                           "plot", "PCA.PC1_PC2", "rlog", str_c(grouping_variables, collapse = "_"),
-                                           "labeled", "png", sep = ".")),
-       plot = pca_plot, width = 12, height = 10)
-
-
-### distance heatmap
-# calculate distance
-dist_df <-
-  rlog_df %>%
-  t(.) %>%
-  dist(.)
-
-# make matrix
-dist_matrix <- as.matrix(dist_df)
-colnames(dist_matrix) <- NULL
-
-# annotation data.frame
-annotation_df <- 
-  sample_table_dds %>% 
-  dplyr::select(-c(sample_id, grouped_variables))
-
-# rownames annotation
-annotation_rownames <- 
-  rownames(dist_matrix) %>% 
-  str_remove_all(., "^s_|\\.PE$|\\.SE$") %>% 
-  str_replace_all(., "_", " ")
-
-# plot
-pheatmap::pheatmap(dist_matrix,
-                   clustering_distance_rows = dist_df,
-                   clustering_distance_cols = dist_df,
-                   col = colorRampPalette(rev(brewer.pal(9, "Blues")))(255),
-                   annotation_row = annotation_df,
-                   labels_row = annotation_rownames,
-                   file = file.path(outpath,
-                                    str_c("miRBase",
-                                          "plot", "dist_heatmap", "rlog", str_c(grouping_variables, collapse = "_"),
-                                          "labeled", "png", sep = ".")),
-                   height = 10,
-                   width = 14)
-
-
-### FPM heatmap ####
-# make matrix
-heatmap_matrix <- as.matrix(log_df)
-rownames(heatmap_matrix) <- NULL
-
-# annotation data.frame
-annotation_df <-
-  sample_table_dds %>% 
-  dplyr::select(-c(sample_id, grouped_variables))
-
-# sort rows and columns 
-mat_cluster_cols <- sort_hclust(hclust(dist(t(heatmap_matrix))))
-mat_cluster_rows <- sort_hclust(hclust(dist(heatmap_matrix)))
-
-# plot
-pheatmap::pheatmap(heatmap_matrix,
-                   col = viridis(10),
-                   annotation_col = annotation_df,
-                   cluster_cols = mat_cluster_cols,
-                   cluster_rows = mat_cluster_rows,
-                   file = file.path(outpath,
-                                    str_c("miRBase",
-                                          "plot", "FPM_heatmap", "log", str_c(grouping_variables, collapse = "_"),
-                                          "png", sep = ".")),
-                   height = 15,
-                   width = 10)
 
 
 
 ####### DIFFERENTIAL EXPRESSION ANALYSIS
 # check whether to do diff. exp. analysis
-if(!is.null(results_groups)){
+if(results_groups != "no"){
   
   ### run main DESeq2 function
   # DESeq
@@ -333,8 +429,8 @@ if(!is.null(results_groups)){
   results_list <- purrr::map(results_groups, function(result){
     
     # shape result
-    result_clean <- 
-      str_split(result, pattern = ",") %>% 
+    result_clean <-
+      str_split(result, pattern = ",") %>%
       unlist(.)
     
     # check if results groups make sense
@@ -348,22 +444,22 @@ if(!is.null(results_groups)){
         dds_shrink %>%
         as_tibble(., rownames = "gene_id") %>%
         dplyr::arrange(padj) %>%
-        dplyr::left_join(fpm_mean_tb %>% dplyr::select(-one_of(sample_table_dds %>% 
-                                                                 dplyr::filter(!(grouped_variables %in% result_clean)) %$% 
-                                                                 grouped_variables %>% 
-                                                                 unique(.))), 
+        dplyr::left_join(fpm_mean_tb %>% dplyr::select(-one_of(sample_table_dds %>%
+                                                                 dplyr::filter(!(grouped_variables %in% result_clean)) %$%
+                                                                 grouped_variables %>%
+                                                                 unique(.))),
                          by = "gene_id") %>%
-        dplyr::mutate(comparison = str_c(result_clean[1], "_vs_", result_clean[2])) %>% 
+        dplyr::mutate(comparison = str_c(result_clean[1], "_vs_", result_clean[2])) %>%
         setnames(., old = result_clean, new = str_c(result_clean, ".FPM"))
       
     }else{
       
-      # stop script with warrning 
-      stop(str_c("Results group ", result, " does not exist in results table. Please check you results group input!"))      
+      # stop script with warrning
+      stop(str_c("Results group ", result, " does not exist in results table. Please check you results group input!"))
       
     }
     
-  }) %>% 
+  }) %>%
     set_names(., results_groups)
   
   
@@ -378,10 +474,10 @@ if(!is.null(results_groups)){
     ## prepare results
     # get results table
     results_df <- results_list[[result]]
-
+    
     # shape result
-    result_clean <- 
-      str_split(result, pattern = ",") %>% 
+    result_clean <-
+      str_split(result, pattern = ",") %>%
       unlist(.)
     
     
@@ -393,8 +489,8 @@ if(!is.null(results_groups)){
     
     ## write only significant results, padj <= 0.1
     # filter table
-    results_df_sign <- 
-      results_df %>% 
+    results_df_sign <-
+      results_df %>%
       dplyr::filter(padj <= 0.1)
     
     # check and write
@@ -409,36 +505,36 @@ if(!is.null(results_groups)){
   }))
   
   # save workbooks to outdir
-  openxlsx::saveWorkbook(wb = wb_all, 
+  openxlsx::saveWorkbook(wb = wb_all,
                          file = file.path(outpath, str_c("miRBase",
-                                                         "diffExp.DESeq2", str_c(grouping_variables, collapse = "_"), 
-                                                         "all_results.xlsx", sep = ".")), 
+                                                         "diffExp.DESeq2", str_c(grouping_variables, collapse = "_"),
+                                                         "all_results.xlsx", sep = ".")),
                          overwrite = TRUE)
-  openxlsx::saveWorkbook(wb = wb_significant, 
+  openxlsx::saveWorkbook(wb = wb_significant,
                          file = file.path(outpath, str_c("miRBase",
-                                                         "diffExp.DESeq2", str_c(grouping_variables, collapse = "_"), 
-                                                         "significant_results.xlsx", sep = ".")), 
+                                                         "diffExp.DESeq2", str_c(grouping_variables, collapse = "_"),
+                                                         "significant_results.xlsx", sep = ".")),
                          overwrite = TRUE)
   
   
   ### create static MA plots
   # get axis limits
-  results_limits <- 
-    results_list %>% 
-    dplyr::bind_rows(.) %>% 
-    dplyr::summarise(x_limit = baseMean %>% na.omit(.) %>% abs(.) %>% max(.) %>% ceiling(.), 
+  results_limits <-
+    results_list %>%
+    dplyr::bind_rows(.) %>%
+    dplyr::summarise(x_limit = baseMean %>% na.omit(.) %>% abs(.) %>% max(.) %>% ceiling(.),
                      y_limit = log2FoldChange %>% na.omit(.) %>% abs(.) %>% max(.) %>% ceiling(.))
   
   # loop through results
   invisible(purrr::map(results_groups, function(result){
-
+    
     ## prepare results
     # get results table
     results_df <- results_list[[result]]
     
     # shape result
-    result_clean <- 
-      str_split(result, pattern = ",") %>% 
+    result_clean <-
+      str_split(result, pattern = ",") %>%
       unlist(.)
     
     
@@ -457,17 +553,17 @@ if(!is.null(results_groups)){
     
     # plot
     ma_plot <-
-      ggplot() + 
+      ggplot() +
       geom_point(data = plot_df, aes(x = mean, y = lfc, color = regulation, alpha = regulation), size = 2.5, shape = 20) +
       scale_x_log10(limits = c(0.01, results_limits$x_limit),
                     breaks = scales::trans_breaks("log10", function(x) 10^x),
                     labels = scales::trans_format("log10", scales::math_format(10^.x))) +
-      scale_y_continuous(limits = c(-results_limits$y_limit, results_limits$y_limit), 
+      scale_y_continuous(limits = c(-results_limits$y_limit, results_limits$y_limit),
                          breaks = c(-results_limits$y_limit:results_limits$y_limit)) +
-      scale_colour_manual(labels = c(no = "not significant", down = "downregulated", up = "upregulated"), 
+      scale_colour_manual(labels = c(no = "not significant", down = "downregulated", up = "upregulated"),
                           values = c(no = "gray50", up = "red2", down = "#1a75ff")) +
-      scale_alpha_manual(values = c(no = 0.5, down = 1, up = 1)) +      
-      guides(color = guide_legend(override.aes = list(shape = 23, size = 5, fill = c("gray50", "red2", "#1a75ff"))), 
+      scale_alpha_manual(values = c(no = 0.5, down = 1, up = 1)) +
+      guides(color = guide_legend(override.aes = list(shape = 23, size = 5, fill = c("gray50", "red2", "#1a75ff"))),
              alpha = F) +
       xlab("mean expression") +
       ylab(str_c("log2 fold change: ", result_clean[1], " / ", result_clean[2], "\n") %>% str_replace_all(., "_", " ")) +
@@ -476,7 +572,7 @@ if(!is.null(results_groups)){
             axis.text.y = element_text(size = 15),
             panel.grid.major = element_blank(),
             panel.grid.minor = element_blank()) +
-      theme(axis.title.x = element_text(size = 13), 
+      theme(axis.title.x = element_text(size = 13),
             axis.title.y = element_text(size = 13)) +
       theme(legend.title = element_blank())
     
@@ -488,10 +584,10 @@ if(!is.null(results_groups)){
             axis.title.y = element_blank())
     
     # save plot
-    ggsave(filename = file.path(outpath, 
-                                str_c("miRBase", 
-                                      "plot", "MA", "DESeq2", str_c(grouping_variables, collapse = "_"), 
-                                      str_c(result_clean[1], "_vs_", result_clean[2]), 
+    ggsave(filename = file.path(outpath,
+                                str_c("miRBase",
+                                      "plot", "MA", "DESeq2", str_c(grouping_variables, collapse = "_"),
+                                      str_c(result_clean[1], "_vs_", result_clean[2]),
                                       "png", sep = ".")),
            plot = ma_plot, width = 12, height = 10)
     
@@ -502,37 +598,37 @@ if(!is.null(results_groups)){
     lfc_cut <- 1.5
     
     # filter data
-    plot_df_labels <- 
-      plot_df %>% 
+    plot_df_labels <-
+      plot_df %>%
       dplyr::mutate(padj_sign = ifelse(padj <= padj_cut, T, F),
-                    lfc_sign = ifelse((abs(lfc) >= lfc_cut), T, F)) %>% 
+                    lfc_sign = ifelse((abs(lfc) >= lfc_cut), T, F)) %>%
       dplyr::filter(padj_sign & lfc_sign)
-      
+    
     # annotation table
     annotations <- tibble(xpos = Inf,
                           ypos = -Inf,
-                          annotateText = str_c("label cutoff: ", 
-                                               "p-adjusted <= ", padj_cut, 
-                                               ", log2FC >= ", lfc_cut)) 
+                          annotateText = str_c("label cutoff: ",
+                                               "p-adjusted <= ", padj_cut,
+                                               ", log2FC >= ", lfc_cut))
     
     # add labels
-    ma_plot_labeled <- 
+    ma_plot_labeled <-
       ma_plot +
       geom_text(data = plot_df_labels,
                 aes(x = mean, y = lfc, label = gene_id),
                 check_overlap = TRUE, size = 3, hjust = 0, vjust = 1.5,
                 colour = "black", fontface = "plain") +
-      geom_text(data = annotations, aes(x = xpos, y = ypos, label = annotateText), 
-                colour = "black", fontface = "italic", size = 2.5, 
+      geom_text(data = annotations, aes(x = xpos, y = ypos, label = annotateText),
+                colour = "black", fontface = "italic", size = 2.5,
                 hjust = 1.03, vjust = -0.5)
     
     
     # save plot
-    ggsave(filename = file.path(outpath, 
-                                str_c("miRBase", 
-                                      "plot", "MA", "DESeq2", str_c(grouping_variables, collapse = "_"), 
-                                      "labeled", 
-                                      str_c(result_clean[1], "_vs_", result_clean[2]), 
+    ggsave(filename = file.path(outpath,
+                                str_c("miRBase",
+                                      "plot", "MA", "DESeq2", str_c(grouping_variables, collapse = "_"),
+                                      "labeled",
+                                      str_c(result_clean[1], "_vs_", result_clean[2]),
                                       "png", sep = ".")),
            plot = ma_plot_labeled, width = 12, height = 10)
     
@@ -548,8 +644,8 @@ if(!is.null(results_groups)){
     results_df <- results_list[[result]]
     
     # shape result
-    result_clean <- 
-      str_split(result, pattern = ",") %>% 
+    result_clean <-
+      str_split(result, pattern = ",") %>%
       unlist(.)
     
     # set p-adjusted and log2FC cutoff
@@ -576,9 +672,9 @@ if(!is.null(results_groups)){
     # annotation table
     annotations <- tibble(xpos = Inf,
                           ypos = -Inf,
-                          annotateText = str_c("label cutoff: ", 
-                                               "p-adjusted <= ", padj_cut, 
-                                               ", log2FC >= ", lfc_cut)) 
+                          annotateText = str_c("label cutoff: ",
+                                               "p-adjusted <= ", padj_cut,
+                                               ", log2FC >= ", lfc_cut))
     
     # plot
     vulcano_plot <-
@@ -590,8 +686,8 @@ if(!is.null(results_groups)){
                 aes(label = plot_df %>% dplyr::filter(padj_sign & lfc_sign) %$% gene_id),
                 check_overlap = TRUE, size = 3, hjust = 0, vjust = 1.5,
                 colour = "black", fontface = "plain") +
-      geom_text(data = annotations, aes(x = xpos, y = ypos, label = annotateText), 
-                colour = "black", fontface = "italic", size = 2.5, 
+      geom_text(data = annotations, aes(x = xpos, y = ypos, label = annotateText),
+                colour = "black", fontface = "italic", size = 2.5,
                 hjust = 1.03, vjust = -0.5) +
       scale_colour_manual(values = c(no = "gray30", fold_change = "forestgreen", p_value = "royalblue", p_value_fold_change = "red2")) +
       scale_x_continuous(limits = c(-8, 8)) +
@@ -608,9 +704,9 @@ if(!is.null(results_groups)){
       theme(legend.position = "top")
     
     # save plot
-    ggsave(filename = file.path(outpath, 
+    ggsave(filename = file.path(outpath,
                                 str_c("miRBase",
-                                      "plot", "vulcano", "DESeq2", str_c(grouping_variables, collapse = "_"), 
+                                      "plot", "vulcano", "DESeq2", str_c(grouping_variables, collapse = "_"),
                                       str_c(result_clean[1], "_vs_", result_clean[2]),
                                       "png", sep = ".")),
            plot = vulcano_plot, width = 10, height = 10)
@@ -630,8 +726,8 @@ if(!is.null(results_groups)){
       results_df <- results_list[[result]]
       
       # shape result
-      result_clean <- 
-        str_split(result, pattern = ",") %>% 
+      result_clean <-
+        str_split(result, pattern = ",") %>%
         unlist(.)
       
       
@@ -670,11 +766,11 @@ if(!is.null(results_groups)){
         
         # save as html widget
         htmlwidgets::saveWidget(plotly::as_widget(interactive_ma_plot),
-                                file = file.path(outpath, 
-                                                 str_c("miRBase", 
-                                                       "interactive", "MA", "DESeq2", str_c(grouping_variables, collapse = "_"), 
+                                file = file.path(outpath,
+                                                 str_c("miRBase",
+                                                       "interactive", "MA", "DESeq2", str_c(grouping_variables, collapse = "_"),
                                                        str_c(result_clean[1], "_vs_", result_clean[2]),
-                                                       "html", sep = ".")), 
+                                                       "html", sep = ".")),
                                 selfcontained = T)
         
       }
@@ -691,8 +787,8 @@ if(!is.null(results_groups)){
       results_df <- results_list[[result]]
       
       # shape result
-      result_clean <- 
-        str_split(result, pattern = ",") %>% 
+      result_clean <-
+        str_split(result, pattern = ",") %>%
         unlist(.)
       
       # set p-adjusted and log2FC cutoff
@@ -739,9 +835,9 @@ if(!is.null(results_groups)){
         
         # save as html widget
         htmlwidgets::saveWidget(plotly::as_widget(interactive_vulcano_plot),
-                                file = file.path(outpath, 
+                                file = file.path(outpath,
                                                  str_c("miRBase",
-                                                       "interactive", "vulcano", "DESeq2", str_c(grouping_variables, collapse = "_"), 
+                                                       "interactive", "vulcano", "DESeq2", str_c(grouping_variables, collapse = "_"),
                                                        str_c(result_clean[1], "_vs_", result_clean[2]),
                                                        "html", sep = ".")),
                                 selfcontained = T)

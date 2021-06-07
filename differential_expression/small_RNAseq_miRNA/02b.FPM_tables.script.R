@@ -59,7 +59,7 @@ counts_path <- args$counts_path
 sample_table_path <- list.files(documentation_path, ".*sampleTable\\.csv", full.names = T)
 
 # reads stats path
-reads_stats_path <- file.path(mapped_path, "4_library_size/library_sizes.txt")
+reads_stats_path <- file.path(mapped_path, "../4_library_size/library_sizes.txt")
 
 ######################################################## READ DATA
 # read counts from featureCounts
@@ -72,11 +72,11 @@ counts_tb <-
 sample_table <- data.table::fread(sample_table_path)
 
 # read stats and tracks table
-reads_stats <- 
-  readr::read_delim(reads_stats_path, delim = "\t", col_names = c("sample_id", "library_size")) %>% 
-  dplyr::filter(!is.na(sample_id), 
-                str_detect(sample_id, "21to23nt$")) %>% 
-  dplyr::mutate(sample_id = str_remove(sample_id, "\\.21to23nt$")) %>% 
+reads_stats <-
+  readr::read_delim(reads_stats_path, delim = "\t", col_names = c("sample_id", "library_size")) %>%
+  dplyr::filter(!is.na(sample_id),
+                str_detect(sample_id, "19to32nt$")) %>%
+  dplyr::mutate(sample_id = str_remove(sample_id, "\\.19to32nt$")) %>%
   as.data.table(.)
 
 ######################################################## MAIN CODE

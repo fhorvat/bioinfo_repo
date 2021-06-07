@@ -25,7 +25,7 @@ SCRIPT_PARAMS="-T $THREADS \
 --fracOverlap 0.75 \
 -f \
 -t miRNA \
--g Name \
+-g ID \
 -M \
 -O \
 --fraction"
