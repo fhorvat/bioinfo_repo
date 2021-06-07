@@ -1,24 +1,20 @@
 #!/bin/bash
 # ----------------Loading variables------------------- #
 # set experiment
-EXPERIMENT=DicerX_embryos
-
-# base path
-BASE_PATH=/common/WORK/fhorvat/Projekti/Svoboda/RNAi.Eliska/DicerX_viral_infection/datasets/2019_Dec
+EXPERIMENT=$(basename $PWD)
+EXPERIMENT_NAME=${EXPERIMENT}".miRNA"
 
 # mapped and documentation
-MAPPED_PATH=${BASE_PATH}/Data/Mapped/STAR_mm10
-DOCUMENTATION_PATH=${BASE_PATH}/Data/Documentation
+MAPPED_PATH=../../datasets/${EXPERIMENT}/5_perfect_reads
+DOCUMENTATION_PATH=../../Documentation/${EXPERIMENT}
 
 # genome and features
-GENOME_PATH=/common/DB/genome_reference/mouse/mm10.GRCm38.GCA_000001635.2
-FEATURES_COORDINATES=${GENOME_PATH}/miRBase.22.mm10.20181605.gff3
-FEATURES_NAME=${FEATURES_COORDINATES##/*/}
-FEATURES_NAME=${FEATURES_NAME%.gff3}
+FEATURES_COORDINATES=../../annotation/${EXPERIMENT}
+FEATURES_NAME=${EXPERIMENT_NAME}
 
 # other
 THREADS=1
-GROUPING_VARIABLES="genotype"
-RESULTS_GROUPS="KO,WT HET,WT KO,HET"
+GROUPING_VARIABLES="tissue"
+RESULTS_GROUPS="no"
 EXPLORATORY_ANALYSIS="yes"
-INTERACTIVE_PLOTS="yes"
+INTERACTIVE_PLOTS="no"
