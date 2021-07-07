@@ -39,6 +39,10 @@ args <-
 
 # path to fasta file
 fasta_path <- args$fasta_path
+fasta_name <- args$fasta_name
+
+fasta_path='../../AcoCah.fa'
+fasta_name='AcoCah'
 
 ######################################################## READ DATA
 # read fasta files
@@ -49,9 +53,6 @@ scaffold_list <-
   purrr::map(., DNAString)
 
 ######################################################## MAIN CODE
-# set fasta name
-fasta_name <- fasta_path %>% basename(.) %>% str_remove(., "\\.fasta$")
-
 # find gaps (N characters)
 gaps_tb <- purrr::map(1:length(scaffold_list), function(n){
   
@@ -64,11 +65,21 @@ gaps_tb <- purrr::map(1:length(scaffold_list), function(n){
     Biostrings::maskMotif(., "n") %>%
     gaps(.) %>%
     as(., "Views") %>%
-    ranges(.) %>%
-    GenomicRanges::GRanges(seqnames = names(scaffold_list[n]), ranges = .) %>%
-    as.data.frame(.) %>%
-    dplyr::filter(width >= 10) %>%
-    dplyr::mutate_all(~as.character(.))
+    ranges(.)
+  
+  # ranges
+  if(length(gap_coords > 0)){
+    
+    gap_coords <- 
+      GenomicRanges::GRanges(seqnames = names(scaffold_list[n]), ranges = gap_coords) %>%
+      as.data.frame(.) %>%
+      as_tibble(.) %>% 
+      dplyr::filter(width >= 10) %>%
+      dplyr::mutate_all(~as.character(.))
+    
+  }else{
+    tibble()
+  }
   
 }) %>%
   dplyr::bind_rows(.)
