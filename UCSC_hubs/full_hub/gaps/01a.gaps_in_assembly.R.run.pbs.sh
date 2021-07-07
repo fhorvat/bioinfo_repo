@@ -12,12 +12,17 @@ cd $PBS_O_WORKDIR
 # set variables
 SCRIPT=./01b.gaps_in_assembly.script.R
 
-INPUT_DIR=/common/DB/genome_reference/golden_hamster/Siomi_assembly.fixed
-IN_SEQ=($(find ${INPUT_DIR} -maxdepth 1 -name "*fasta"))
+INPUT_DIR=../..
+IN_SEQ=($(find ${INPUT_DIR} -maxdepth 1 -name "*fa"))
 FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
-BASE=${BASE%.fasta}
+BASE=${BASE%.fa}
+
+# input for manual script
+echo -e '\n'\
+fasta_path=\'$FILE\''\n'\
+fasta_name=\'$BASE\''\n'
 
 # ----------------Commands------------------- #
 # run script
-Rscript ${SCRIPT} --fasta_path ${FILE} 
+Rscript ${SCRIPT} --fasta_path ${FILE} --fasta_name ${BASE}

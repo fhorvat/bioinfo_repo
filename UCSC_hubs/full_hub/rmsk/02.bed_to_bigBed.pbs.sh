@@ -18,7 +18,7 @@ FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
 BASE=${BASE%.bed}
 
-INPUT_DIR=../../mesAur
+INPUT_DIR=../../
 CHROM_SIZES=($(find ${INPUT_DIR} -name "*chrom.sizes"))
 
 # ----------------Commands------------------- #
@@ -29,8 +29,8 @@ LC_COLLATE=C sort -k1,1 -k2,2n $FILE > ${BASE}.sorted.bed
 bedToBigBed ${BASE}.sorted.bed ${CHROM_SIZES} ${BASE}.bb
 
 # remove input
-#[ -f "${BASE}.bb" ] && rm ${BASE}.sorted.bed
-#[ -f "${BASE}.bb" ] && rm ${BASE}.bed
+[ -f "${BASE}.bb" ] && rm ${BASE}.sorted.bed
+[ -f "${BASE}.bb" ] && rm ${BASE}.bed
 
 # set permission
 chmod 744 ${BASE}.bb

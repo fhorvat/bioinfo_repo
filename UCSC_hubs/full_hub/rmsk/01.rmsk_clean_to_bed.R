@@ -3,10 +3,9 @@
 ### AUTHOR: Filip Horvat
 rm(list = ls()); gc()
 options(bitmapType = "cairo")
-wideScreen()
 
 ######################################################## WORKING DIRECTORY
-setwd("/common/WORK/fhorvat/Projekti/Svoboda/hubs/golden_hamster.Siomi/files/rmsk")
+setwd(".")
 
 ######################################################## LIBRARIES
 library(dplyr)
@@ -34,7 +33,7 @@ inpath <- getwd()
 outpath <- getwd()
 
 # genome path
-genome_dir <- "/common/DB/genome_reference/golden_hamster/Siomi_assembly.fixed"
+genome_dir <- "/common/DB/genome_reference/Muridae/Acomys_cahirinus/AcoCah.GCA_004027535.1"
 
 # clean repeatMasker path
 rmsk_path <- list.files(genome_dir, "rmsk\\..*\\.clean\\.fa\\.out\\.gz", full.names = T)
