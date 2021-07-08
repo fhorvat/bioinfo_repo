@@ -47,6 +47,7 @@ rmsk_tb <- readr::read_delim(file = rmsk_path, delim = "\t")
 # format as bed, split to repeatClasses
 rmsk_bed <-
   rmsk_tb %>%
+  dplyr::filter(!(str_detect(repClass, "\\?"))) %>%
   dplyr::mutate(start = start - 1, name = repName, score = 1000, thickStart = start, thickEnd = end, itemRgb = "255,0,0") %>%
   dplyr::select(chrom = seqnames, chromStart = start, chromEnd = end, name, score, strand, thickStart, thickEnd, itemRgb, repClass) %>%
   split(., .$repClass)

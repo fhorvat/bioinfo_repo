@@ -41,9 +41,6 @@ args <-
 fasta_path <- args$fasta_path
 fasta_name <- args$fasta_name
 
-fasta_path='../../AcoCah.fa'
-fasta_name='AcoCah'
-
 ######################################################## READ DATA
 # read fasta files
 scaffold_list <-
@@ -68,12 +65,12 @@ gaps_tb <- purrr::map(1:length(scaffold_list), function(n){
     ranges(.)
   
   # ranges
-  if(length(gap_coords > 0)){
+  if(length(gap_coords) > 0){
     
-    gap_coords <- 
+    gap_coords <-
       GenomicRanges::GRanges(seqnames = names(scaffold_list[n]), ranges = gap_coords) %>%
       as.data.frame(.) %>%
-      as_tibble(.) %>% 
+      as_tibble(.) %>%
       dplyr::filter(width >= 10) %>%
       dplyr::mutate_all(~as.character(.))
     
@@ -91,5 +88,7 @@ gaps_bed <-
                 start = as.integer(start) - 1,
                 score = 0,
                 strand = ".") %>%
-  dplyr::select(seqnames, start, end, name, score, strand) %T>%
-  readr::write_delim(., file.path(outpath, str_c(fasta_name, ".bed")), delim = "\t", col_names = F)
+  dplyr::select(seqnames, start, end, name, score, strand) %>% 
+  dplyr::mutate(seqnames = str_remove(seqnames, " .*")) %T>%
+  readr::write_delim(., file.path(outpath, str_c(fasta_name, ".gaps.bed")), delim = "\t", col_names = F)
+

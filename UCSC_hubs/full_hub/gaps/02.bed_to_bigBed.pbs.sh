@@ -17,7 +17,7 @@ FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
 BASE=${BASE%.bed}
 
-INPUT_DIR=../../mesAur
+INPUT_DIR=../..
 CHROM_SIZES=($(find ${INPUT_DIR} -name "*chrom.sizes"))
 
 # ----------------Commands------------------- #
