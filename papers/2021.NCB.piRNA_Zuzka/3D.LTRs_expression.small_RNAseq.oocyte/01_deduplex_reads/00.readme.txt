@@ -1,0 +1,16 @@
+1. Trim reads:
+	1.1 Remove only adapters and keep those files = {BASE}.atrim.txt.gz (./01_deduplex_reads/01_trim_reads/01.trim_adapter.NEXTFlex.pbs.sh)
+	1.2 Remove 4 random nucleotides on 5' and 3' ends after trimming adapters = {BASE}.txt.gz (./01_deduplex_reads/01_trim_reads/01.trim_adapter.NEXTFlex.pbs.sh)
+2. Get 18-32nt reads which map to genome in fastq format:
+	2.1 Map reads with trimmed both adapters and random nucleotides ({BASE}.txt.gz) to the genome (./01_deduplex_reads/02_map_to_genome)
+	2.2 Get only mapped 18-32nt reads (./01_deduplex_reads/03_filter_18to32nt_reads)
+	2.3 Get non-redundant list of read names (./01_deduplex_reads/04_fastq_from_bam/00a.bam_read_list.pbs.sh)
+	2.4 Reformat read names in adapter trimmed fastq files ({BASE}.atrim.txt.gz) = remove everyting after first space in read names (./01_deduplex_reads/04_fastq_from_bam/00b.reformat_read_names.pbs.sh)
+	2.5 Subset those reads based on the list of all mapped 18-32nt reads (./01_deduplex_reads/04_fastq_from_bam/00c.filter_fastq_by_read_name.pbs.sh)
+3. Add UMI sequences to read names
+	3.1 Get text files with 4 random nucleotides from 5' end and from 3' end from each read joined together (./01_deduplex_reads/05_UMI_sequences_to_read_names/01.UMI_list.pbs.sh)
+	3.2 Paste UMIs to read names in fastq files, separated by "_" (./01_deduplex_reads/05_UMI_sequences_to_read_names/02.add_UMI_to_fastq.pbs.sh)
+4. Deduplex using UMI tools and get final deduplexed fastq files
+	4.1 Map reads with UMIs in read names to the genome (./01_deduplex_reads/06_map_to_genome)
+	4.2 Deduplex mapped reads using using UMI tools (./01_deduplex_reads/07_deduplex_with_umi_tools/02.deduplex_mapped.UMI_tools.pbs.sh)
+	4.3 Get fastq files from deduplexed .bam files (./01_deduplex_reads/07_deduplex_with_umi_tools/03.bam_to_fastq.pbs.sh)

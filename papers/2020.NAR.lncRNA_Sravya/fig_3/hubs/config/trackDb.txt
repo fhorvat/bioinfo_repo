@@ -1,0 +1,300 @@
+track RNAseq_expression
+compositeTrack on
+shortLabel RNA-seq 
+longLabel Developmental stages RNA-seq, scaled to RPM
+group RNAseq_expression
+centerLabelsDense off
+priority 1
+visibility full
+type bigWig
+noInherit on
+
+	track s_2cell.scaled
+	parent RNAseq_expression on
+	bigDataUrl http://hex.bioinfo.hr/~fhorvat/Svoboda/bw_tracks/accessory_data_sets/Mamrot_2018_unpub_PRJNA436818/s_2cell.scaled.bw
+	group RNAseq_expression
+	shortLabel 2-cell_scaled
+	longLabel 2-cell stage RNA-seq merged replicates RPM scaled (PRJNA436818)
+	color 0,153,76
+	visibility full
+	autoScale on
+	alwaysZero on
+	type bigWig
+
+	track s_4cell.scaled
+	parent RNAseq_expression on
+	bigDataUrl http://hex.bioinfo.hr/~fhorvat/Svoboda/bw_tracks/accessory_data_sets/Mamrot_2018_unpub_PRJNA436818/s_4cell.scaled.bw
+	group RNAseq_expression
+	shortLabel 4-cell_scaled
+	longLabel 4-cell stage RNA-seq merged replicates RPM scaled (PRJNA436818)
+	color 171,3,3
+	visibility full
+	autoScale on
+	alwaysZero on
+	type bigWig
+
+	track s_8cell.scaled
+	parent RNAseq_expression on
+	bigDataUrl http://hex.bioinfo.hr/~fhorvat/Svoboda/bw_tracks/accessory_data_sets/Mamrot_2018_unpub_PRJNA436818/s_8cell.scaled.bw
+	group RNAseq_expression
+	shortLabel 8-cell_scaled
+	longLabel 8-cell stage RNA-seq merged replicates RPM scaled (PRJNA436818)
+	color 0,54,171
+	autoScale on
+	alwaysZero on
+	visibility full
+	type bigWig
+
+
+track Flanking_genes_mm10.Blat
+compositeTrack on
+shortLabel Flanking genes from mm10 BLAT
+longLabel Flanking genes mRNAs and genomic regions blatted from mm10
+group Flanking_genes_mm10.Blat
+centerLabelsDense off
+priority 1
+visibility full
+type bed 3 .
+noInherit on
+
+	track AcoCah_Spty2d1
+	parent Flanking_genes_mm10.Blat on
+	bigDataUrl AcoCah.PVKX01003081.1.Spty2d1.bb
+	group Flanking_genes_mm10.Blat
+	shortLabel Spty2d1 mm10 mRNA
+	longLabel Spty2d1 mRNA from mm10 blatted to AcoCah
+	searchIndex name
+	color 26,3,94
+	visibility full
+	priority 1
+	type bigPsl
+
+	track AcoCah_Uevld
+	parent Flanking_genes_mm10.Blat on
+	bigDataUrl AcoCah.PVKX01003081.1.Uevld.bb
+	group Flanking_genes_mm10.Blat
+	shortLabel Uevld mm10 mRNA
+	longLabel Uevld mRNA from mm10 blatted to AcoCah
+	searchIndex name
+	color 26,3,94
+	visibility full
+	priority 2
+	type bigPsl
+
+	track AcoCah_ElobPS
+	parent Flanking_genes_mm10.Blat on
+	bigDataUrl AcoCah.PVKX01003081.1.ElobPS.bb
+	group Flanking_genes_mm10.Blat
+	shortLabel Elob_PS mm10 genomic
+	longLabel Elob pseudogene (RP23-323L3.7) genomic region from mm10 blatted to AcoCah
+	searchIndex name
+	color 26,3,94
+	visibility full
+	priority 3
+	type bigPsl
+
+	track AcoCah_Gm9999
+	parent Flanking_genes_mm10.Blat on
+	bigDataUrl AcoCah.PVKX01003081.1.Gm9999.bb
+	group Flanking_genes_mm10.Blat
+	shortLabel Gm9999 mm10 mRNA
+	longLabel Gm9999 mRNA from mm10 blatted to AcoCah
+	searchIndex name
+	color 26,3,94
+	visibility full
+	priority 4
+	type bigPsl
+        
+	track AcoCah_Rpl18_PS2
+	parent Flanking_genes_mm10.Blat on
+	bigDataUrl AcoCah.PVKX01003081.1.Rpl18PS2.bb
+	group Flanking_genes_mm10.Blat
+	shortLabel Rpl18_PS2 mm10 genomic
+	longLabel Rpl18 pseudogene (Rpl18-ps2) from mm10 blatted to AcoCah
+	searchIndex name
+	color 26,3,94
+	visibility full
+	priority 5
+	type bigPsl
+
+	track AcoCah_Obox2
+	parent Flanking_genes_mm10.Blat on
+	bigDataUrl AcoCah.PVKX01003081.1.Obox2.bb
+	group Flanking_genes_mm10.Blat
+	shortLabel Obox2 mm10 mRNA
+	longLabel Obox2 mRNA from mm10 blatted to AcoCah
+	searchIndex name
+	color 26,3,94
+	visibility full
+	priority 6
+	type bigPsl
+
+	track AcoCah_Sirena
+	parent Flanking_genes_mm10.Blat on
+	bigDataUrl AcoCah.PVKX01003081.1.Sirena.bb
+	group Flanking_genes_mm10.Blat
+	shortLabel Sirena mm10 mRNA
+	longLabel Sirena mRNA from mm10 blatted to AcoCah
+	searchIndex name
+	color 26,3,94
+	visibility full
+	priority 7
+	type bigPsl
+
+
+track RepeatMasker
+compositeTrack on
+shortLabel RepeatMasker
+longLabel Repeating Elements by RepeatMasker
+group RepeatMasker
+priority 2
+visibility dense
+type bed 3 .
+noInherit on
+
+	track repeatMasker_DNA
+	parent RepeatMasker
+	shortLabel DNA
+	longLabel DNA Repeating Elements by RepeatMasker
+	priority 1
+	spectrum on
+	maxWindowToDraw 10000000
+	colorByStrand 50,50,150 150,50,50
+	type bigBed 6 +
+	bigDataUrl AcoCah.PVKX01003081.1.DNA.bb
+ 
+	track repeatMasker_LINE
+	parent RepeatMasker
+	shortLabel LINE
+	longLabel LINE Repeating Elements by RepeatMasker
+	priority 2
+	spectrum on
+	maxWindowToDraw 10000000
+	colorByStrand 50,50,150 150,50,50
+	type bigBed 6 +
+	bigDataUrl AcoCah.PVKX01003081.1.LINE.bb
+ 
+	track repeatMasker_Low_complexity
+	parent RepeatMasker
+	shortLabel Low_complexity
+	longLabel Low_complexity Repeating Elements by RepeatMasker
+	priority 3
+	spectrum on
+	maxWindowToDraw 10000000
+	colorByStrand 50,50,150 150,50,50
+	type bigBed 6 +
+	bigDataUrl AcoCah.PVKX01003081.1.Low_complexity.bb
+ 
+	track repeatMasker_LTR
+	parent RepeatMasker
+	shortLabel LTR
+	longLabel LTR Repeating Elements by RepeatMasker
+	priority 4
+	spectrum on
+	maxWindowToDraw 10000000
+	colorByStrand 50,50,150 150,50,50
+	type bigBed 6 +
+	bigDataUrl AcoCah.PVKX01003081.1.LTR.bb
+ 
+	track repeatMasker_rRNA
+	parent RepeatMasker
+	shortLabel rRNA
+	longLabel rRNA Repeating Elements by RepeatMasker
+	priority 5
+	spectrum on
+	maxWindowToDraw 10000000
+	colorByStrand 50,50,150 150,50,50
+	type bigBed 6 +
+	bigDataUrl AcoCah.PVKX01003081.1.rRNA.bb
+ 
+	track repeatMasker_Satellite
+	parent RepeatMasker
+	shortLabel Satellite
+	longLabel Satellite Repeating Elements by RepeatMasker
+	priority 6
+	spectrum on
+	maxWindowToDraw 10000000
+	colorByStrand 50,50,150 150,50,50
+	type bigBed 6 +
+	bigDataUrl AcoCah.PVKX01003081.1.Satellite.bb
+ 
+	track repeatMasker_scRNA
+	parent RepeatMasker
+	shortLabel scRNA
+	longLabel scRNA Repeating Elements by RepeatMasker
+	priority 7
+	spectrum on
+	maxWindowToDraw 10000000
+	colorByStrand 50,50,150 150,50,50
+	type bigBed 6 +
+	bigDataUrl AcoCah.PVKX01003081.1.scRNA.bb
+ 
+	track repeatMasker_Simple_repeat
+	parent RepeatMasker
+	shortLabel Simple_repeat
+	longLabel Simple_repeat Repeating Elements by RepeatMasker
+	priority 8
+	spectrum on
+	maxWindowToDraw 10000000
+	colorByStrand 50,50,150 150,50,50
+	type bigBed 6 +
+	bigDataUrl AcoCah.PVKX01003081.1.Simple_repeat.bb
+ 
+	track repeatMasker_SINE
+	parent RepeatMasker
+	shortLabel SINE
+	longLabel SINE Repeating Elements by RepeatMasker
+	priority 9
+	spectrum on
+	maxWindowToDraw 10000000
+	colorByStrand 50,50,150 150,50,50
+	type bigBed 6 +
+	bigDataUrl AcoCah.PVKX01003081.1.SINE.bb
+ 
+	track repeatMasker_Unknown
+	parent RepeatMasker
+	shortLabel Unknown
+	longLabel Unknown Repeating Elements by RepeatMasker
+	priority 10
+	spectrum on
+	maxWindowToDraw 10000000
+	colorByStrand 50,50,150 150,50,50
+	type bigBed 6 +
+	bigDataUrl AcoCah.PVKX01003081.1.Unknown.bb
+
+
+track multiz_rodents
+bigDataUrl AcoCah.MSA_multiz.bb
+shortLabel multiz_rodents
+longLabel Multiple alignment between rodent species
+type bigMaf
+group multiz_MSA_rodents
+priority 3
+speciesOrder MerUng rn6 GraSur mm10
+
+track multiz_vs_mm10
+bigDataUrl AcoCah.mm10.bb
+shortLabel multiz_vs_mm10
+longLabel Alignment between AcoCah and mm10
+type bigMaf
+group multiz_MSA_rodents
+priority 3
+
+
+track gaps
+bigDataUrl AcoCah.gaps.bb
+shortLabel gaps
+longLabel Gaps in assembly (N string longer than 10 nt)
+visibility dense
+type bigBed
+group gaps
+priority 8
+
+
+track mm10.ensembl.93.cdna.bam
+bigDataUrl GCA_004027535.1_AcoCah_v1_BIUU.mm10.ensembl.93.cdna.bam
+group mm10_transcriptome
+shortLabel mm10 ensembl.93
+longLabel Transcriptome mm10 ensembl.93
+visibility pack
+type bam
