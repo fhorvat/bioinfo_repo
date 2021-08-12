@@ -1,0 +1,24 @@
+name RNAseq_expression 
+label RNA-seq of developmental stages
+priority 1
+defaultIsClosed 0
+
+name Flanking_genes_mm10.Blat
+label Flanking genes from mm10 BLAT
+priority 2
+defaultIsClosed 0
+
+name RepeatMasker
+label RepeatMasker
+priority 3
+defaultIsClosed 0
+
+name multiz_MSA_rodents
+label Multiz MSA rodents
+priority 4
+defaultIsClosed 0
+
+name mm10_transcriptome
+label Transcriptome mm10 ensembl.93 cDNA 
+priority 5
+defaultIsClosed 0
