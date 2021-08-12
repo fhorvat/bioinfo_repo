@@ -1,0 +1,48 @@
+###########################
+# changes variables in all scripts
+sh 00b.change_scripts.sh
+
+# maps reads to genome
+JOB_01=`qsub 01.map_to_genome.STAR.pbs.sh`;echo $JOB_01
+
+# counts number of reads in each mapped file
+JOB_03=`qsub -W depend=afterok:$JOB_01 03.library_sizes.pbs.sh`;echo $JOB_03 
+
+# classifies mapped reads
+JOB_04=`qsub -W depend=afterok:$JOB_01 04a.classify_reads.run.pbs.sh`;echo $JOB_04
+
+# summarizes all read classes
+JOB_05=`qsub -W depend=afterok:$JOB_04 05a.summarize_class_logs.run.pbs.sh`;echo $JOB_05
+
+# scales bigWig to RPM
+qsub -W depend=afterok:$JOB_05 06.scale_bigWig.pbs.sh
+###########################
+
+
+###########################
+# creates symbolic links of bw, bam and bami files on hex.bioinfo.hr (needs password input)
+ssh hex.bioinfo.hr 'bash -s' < 07a.create_hex_links.sh
+###########################
+
+
+###########################
+# downloads URLs of tracks from hex
+sh 07b.read_hex_URLs.sh
+
+# writes all sample stats and tracks URL to one table
+qsub 08a.summarize_stats_and_tracks.run.pbs.sh
+###########################
+
+
+###########################
+# tidies dir and files
+sh 09a.tidy_files.sh
+###########################
+
+
+###########################
+# optionally delete all intermediate files (in 1_mapped and 2_unmapped)
+#sh 0_scripts/09b.delete_files.sh
+###########################
+
+
