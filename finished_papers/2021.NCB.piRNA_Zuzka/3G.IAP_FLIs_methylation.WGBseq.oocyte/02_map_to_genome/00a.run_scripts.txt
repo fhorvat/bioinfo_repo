@@ -1,0 +1,45 @@
+###########################
+# changes variables in all scripts
+sh 00b.change_scripts.sh
+
+# maps reads to genome
+JOB_01=`qsub 01.map_to_genome.bismark.pbs.sh`;echo $JOB_01
+
+# extract methylation from bam files
+JOB_02=`qsub -W depend=afterok:$JOB_01 02.extract_methylation.pbs.sh`;echo $JOB_02
+
+# create reports
+JOB_03=`qsub -W depend=afterok:$JOB_02 03.make_html_reports.pbs.sh`;echo $JOB_03
+
+# bedGraph to bigWig
+qsub -W depend=afterok:$JOB_03 04.bedGraph_to_bigWig.pbs.sh
+###########################
+
+
+###########################
+# creates symbolic links of bw, bam and bami files on hex.bioinfo.hr (needs password input)
+ssh hex.bioinfo.hr 'bash -s' < 05a.create_hex_links.sh
+###########################
+
+
+###########################
+# downloads URLs of tracks from hex
+sh 05b.read_hex_URLs.sh
+
+# writes all sample stats and tracks URL to one table
+qsub 06a.summarize_stats_and_tracks.run.pbs.sh
+###########################
+
+
+###########################
+# tidies dir and files
+sh 07a.tidy_files.sh
+###########################
+
+
+###########################
+# optionally delete all intermediate files (in 1_mapped and 2_unmapped)
+#sh 0_scripts/07b.delete_files.sh
+###########################
+
+
