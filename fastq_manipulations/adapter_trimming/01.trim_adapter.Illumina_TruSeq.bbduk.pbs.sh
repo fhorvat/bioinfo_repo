@@ -19,7 +19,7 @@ FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${IN_DIR}/}
 BASE=${BASE%.txt.gz}
 
-ADAPTER=/common/WORK/fhorvat/Projekti/Svoboda/scripts/trim_fastq/adapter_trimming/Illumina_TruSeq_Small_RNA.fa
+ADAPTER=/common/WORK/fhorvat/Projekti/Svoboda/scripts/fastq_manipulations/adapter_trimming/Illumina_TruSeq_Small_RNA.fa
 
 BBDUK_PAR="overwrite=t \
 ktrim=r \

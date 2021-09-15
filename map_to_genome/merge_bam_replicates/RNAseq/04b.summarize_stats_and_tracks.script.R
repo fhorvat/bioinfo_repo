@@ -21,12 +21,21 @@ library(ggplot2)
 ######################################################## FUNCTIONS
 
 ######################################################## PATH VARIABLES
+# set outpath, get paths for gtf and bam files
 outpath <- getwd()
+
+# get arguments from command line, transform to named vector
+args <-
+  commandArgs(trailingOnly = TRUE) %>%
+  parseCommandLineArguments(.)
+
+# arguments from command line
+experiment <- args$experiment
+experiment_name <- args$experiment_name
+
+# stats and tracks paths
 stats_path <- file.path(outpath, "../3_logs", "log.read_stats.txt")
 tracks_path <- file.path(outpath, "log.tracks_URL.txt")
-
-experiment <- "%EXPERIMENT"
-experiment_name <- "%EXPERIMENT_NAME"
 
 ######################################################## READ DATA
 # stats
@@ -35,7 +44,7 @@ stats_tbl <- readr::read_delim(stats_path, delim = "\t")
 ######################################################## MAIN CODE
 # summarize stats table
 stats_tbl %<>% 
-  dplyr::mutate(sample_id = sample_id %>% str_remove_all(., "_r[0-9]+\\.[P,S]E|_old")) %>% 
+  dplyr::mutate(sample_id = sample_id %>% str_remove_all(., "_r[0-9]+\\.[P,S]E")) %>% 
   dplyr::group_by(sample_id) %>% 
   summarize_all(sum)
 

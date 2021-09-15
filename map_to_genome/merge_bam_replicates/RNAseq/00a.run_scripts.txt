@@ -1,0 +1,32 @@
+###########################
+# changes variables in all scripts
+sh 00b.change_scripts.sh
+
+# merges bams
+JOB_01=`qsub 01.merge_bams.pbs.sh`;echo $JOB_01
+
+# scales bigWig to RPM
+B_02=`qsub -W depend=afterok:$JOB_01 02.scale_bigWig.pbs.sh`;echo $JOB_02
+
+###########################
+
+
+###########################
+# creates symbolic links of bw, bam and bami files on hex.bioinfo.hr (needs password input)
+ssh hex.bioinfo.hr 'bash -s' < 03a.create_hex_links.sh
+###########################
+
+
+###########################
+# downloads URLs of tracks from hex
+sh 03b.read_hex_URLs.sh
+
+# writes all sample stats and tracks URL to one table
+qsub 04a.summarize_stats_and_tracks.run.pbs.sh
+###########################
+
+
+###########################
+# tidies dir and files
+sh 05.tidy_files.sh
+###########################

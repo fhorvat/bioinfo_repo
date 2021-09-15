@@ -14,7 +14,7 @@ SJDB_OVERHANG=sjdbOverhang_100
 HEX_OUT=accessory_data_sets/${EXPERIMENT}
 
 # input fastq files
-IN_SEQ=($(find $INPUT_DIR -maxdepth 1 \( -name "*.txt.gz" -not -name "*all*" \)))
+IN_SEQ=($(find $INPUT_DIR -maxdepth 1 \( -name "*.txt.gz" \)))
 
 ### load
 # scripts to change
