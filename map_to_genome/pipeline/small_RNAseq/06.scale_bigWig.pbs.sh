@@ -32,11 +32,11 @@ if [ ${SCALING} == "19to32nt" ]
 then
    SAMPLE=${BASE%%.*}
    SAMPLE=${SAMPLE}.SE.19to32nt
-   SCALE_FACTOR=$(awk -v PAT="${SAMPLE}\t" -F '\t' '$0 ~ PAT {print 1000000 / $2}' ${LOG})
+   SCALE_FACTOR=$(awk -v PAT="${SAMPLE}\t" -F '\t' '$0 ~ PAT {print 1000000 / $3}' ${LOG})
    BASE=${BASE}.scaled_19to32
 else
    SAMPLE=${BASE}
-   SCALE_FACTOR=$(awk -v PAT="${SAMPLE}\t" -F '\t' '$0 ~ PAT {print 1000000 / $2}' ${LOG})
+   SCALE_FACTOR=$(awk -v PAT="${SAMPLE}\t" -F '\t' '$0 ~ PAT {print 1000000 / $3}' ${LOG})
    BASE=${BASE}.scaled
 fi
 
