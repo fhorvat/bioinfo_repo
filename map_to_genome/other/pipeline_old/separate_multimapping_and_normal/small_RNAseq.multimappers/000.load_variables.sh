@@ -8,13 +8,16 @@ EXPERIMENT_NAME=${EXPERIMENT%_*_*}
 #### input
 SINGLE_END=TRUE
 IN_GENOME=mouse/mm10.GRCm38.GCA_000001635.2
-INPUT_DIR=../../Raw/Links
+INPUT_DIR=${PWD%/Mapped*}/Raw/Cleaned
 ENSEMBL_VERSION=99
 SJDB_OVERHANG=sjdbOverhang_100
 HEX_OUT=accessory_data_sets/${EXPERIMENT}
 
+# chose .bw track scaling (19to32nt or respective)
+SCALING="19to32nt"
+
 # input fastq files
-IN_SEQ=($(find $INPUT_DIR -maxdepth 1 \( -name "*.txt.gz" \)))
+IN_SEQ=($(find $INPUT_DIR -maxdepth 1 \( -name "*.txt.gz" -not -name "*atrim.txt.gz" \)))
 
 ### load
 # scripts to change
@@ -29,6 +32,8 @@ CHR_LENGTH=${STAR_INDEX}/chrNameLength.txt
 # input features for classifying reads
 FEATURES_EXONS=$(find ${GENOME_PATH} -maxdepth 1 -name "ensembl.${ENSEMBL_VERSION}.*.UCSCseqnames.reducedExons.RDS")
 FEATURES_RMSK=$(find $GENOME_PATH -maxdepth 1 -name "rmsk*clean.fa.out.gz")
+FEATURES_MIRBASE=$(find $GENOME_PATH -maxdepth 1 -name "miRBase.*.gff3")
+FEATURES_GENEINFO=${FEATURES_EXONS/reducedExons.RDS/geneInfo.csv}
 
 # paths for tracks
 HEX_PATH=~/public_html/Svoboda/bw_tracks/${HEX_OUT}

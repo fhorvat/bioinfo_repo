@@ -23,25 +23,56 @@ BASE=${FILE#${INPUT_DIR}/}
 BASE=${BASE%.txt.gz}
 
 # mapping parameters
-STAR_PAR="--genomeDir $STAR_INDEX \
---runThreadN $THREADS \
-#--genomeLoad LoadAndRemove \
---genomeLoad NoSharedMemory \
---limitBAMsortRAM  20000000000 \
---readFilesCommand unpigz -c \
---outFileNamePrefix ${BASE}. \
---outSAMtype BAM SortedByCoordinate \
---outReadsUnmapped Fastx \
---outFilterMismatchNmax 1 \
---outFilterMismatchNoverLmax 1 \
---outFilterMismatchNoverReadLmax 1 \
---outFilterMatchNmin 16 \
---outFilterMatchNminOverLread 0 \
---outFilterScoreMinOverLread 0 \
---outFilterMultimapNmax 99999 \
---outFilterMultimapScoreRange 0 \
---alignIntronMax 1 \
---alignSJDBoverhangMin 999999999999"
+if [ ${ALL_MULTIMAPPERS} == FALSE ]
+then
+	STAR_PAR="--genomeDir ${STAR_INDEX} \
+	--runThreadN ${THREADS} \
+	#--genomeLoad LoadAndRemove \
+	--genomeLoad NoSharedMemory \
+	--limitBAMsortRAM  20000000000 \
+	--readFilesCommand unpigz -c \
+	--outFileNamePrefix ${BASE}. \
+	--outSAMtype BAM SortedByCoordinate \
+	--outReadsUnmapped Fastx \
+	--outFilterMismatchNmax 1 \
+	--outFilterMismatchNoverLmax 1 \
+	--outFilterMismatchNoverReadLmax 1 \
+	--outFilterMatchNmin 16 \
+	--outFilterMatchNminOverLread 0 \
+	--outFilterScoreMinOverLread 0 \
+	--outFilterMultimapNmax 99999 \
+	--outFilterMultimapScoreRange 0 \
+	--alignIntronMax 1 \
+	--alignSJDBoverhangMin 999999999999"
+else
+	STAR_PAR="--genomeDir ${STAR_INDEX} \
+	--runThreadN ${THREADS} \
+	--genomeLoad NoSharedMemory \
+	--limitBAMsortRAM  20000000000 \
+	--readFilesCommand unpigz -c \
+	--outFileNamePrefix ${BASE}. \
+	--outSAMtype BAM SortedByCoordinate \
+	--outReadsUnmapped Fastx \
+	--outFilterMismatchNmax 1 \
+	--outFilterMismatchNoverLmax 1 \
+	--outFilterMismatchNoverReadLmax 1 \
+	--outFilterMatchNmin 16 \
+	--outFilterMatchNminOverLread 0 \
+	--outFilterScoreMinOverLread 0 \
+	--outFilterMultimapNmax 5000 \
+	--winAnchorMultimapNmax 5000 \
+	--seedSearchStartLmax 30 \
+	--alignTranscriptsPerReadNmax 30000 \
+	--alignWindowsPerReadNmax 30000 \
+	--alignTranscriptsPerWindowNmax 300 \
+	--seedPerReadNmax 3000 \
+	--seedPerWindowNmax 300 \
+	--seedNoneLociPerWindow 1000 \
+	--outFilterMultimapScoreRange 0 \
+	#--alignEndsType EndToEnd \
+	--alignIntronMax 1 \
+	--alignSJDBoverhangMin 999999999999"
+fi
 
 # ----------------Commands------------------- #
 # mapping
