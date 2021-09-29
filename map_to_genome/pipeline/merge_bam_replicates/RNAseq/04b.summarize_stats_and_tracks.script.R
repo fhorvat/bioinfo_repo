@@ -32,20 +32,20 @@ args <-
 # arguments from command line
 experiment <- args$experiment
 experiment_name <- args$experiment_name
+log_path <- args$log_path
 
 # stats and tracks paths
-stats_path <- file.path(outpath, "../3_logs", "log.read_stats.txt")
 tracks_path <- file.path(outpath, "log.tracks_URL.txt")
 
 ######################################################## READ DATA
 # stats
-stats_tbl <- readr::read_delim(stats_path, delim = "\t")
+stats_tbl <- readr::read_delim(log_path, delim = "\t")
 
 ######################################################## MAIN CODE
 # summarize stats table
-stats_tbl %<>% 
-  dplyr::mutate(sample_id = sample_id %>% str_remove_all(., "_r[0-9]+\\.[P,S]E")) %>% 
-  dplyr::group_by(sample_id) %>% 
+stats_tbl %<>%
+  dplyr::mutate(sample_id = sample_id %>% str_remove(., "_r[0-9]+(?=\\.[S,P]E$)")) %>%
+  dplyr::group_by(sample_id) %>%
   summarize_all(sum)
 
 # tracks
@@ -89,4 +89,5 @@ tracks_tbl_tidy <-
 stats_and_tracks <-
   right_join(stats_tbl, tracks_tbl_tidy, by = "sample_id") %>%
   dplyr::select(experiment, sample_id, raw.coverage, RPM_scaled.coverage, raw.individual_reads, everything()) %T>%
-  readr::write_csv(., path = file.path(outpath, str_c("log", experiment, "merged", "stats_and_tracks.csv", sep = ".")))
+  readr::write_csv(., file = file.path(outpath, str_c("log", experiment, "merged", "stats_and_tracks.csv", sep = ".")))
+

@@ -5,7 +5,7 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -N pbs.03.add_UMI_to_fastq
-#PBS -J 0-1
+#PBS -J 0-2
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
@@ -22,6 +22,9 @@ BASE=${BASE%.atrim.txt.gz}
 # unpigz
 unpigz -p ${THREADS} ${FILE}
 
+# remove space from the identifier of the fastq
+sed -i 's/ .*//' ${FILE%.gz}
+
 # add the UMI to the fastq file identifier line
 awk '{getline p<f} (NR%4==1){$1=$1""$2;$2=p}1' OFS= f=${BASE}.05.umi_final.txt ${FILE%.gz} > ${BASE}.umi.fastq
 
@@ -31,9 +34,6 @@ sed -e '/_N\|_.*N/,+3d' ${BASE}.umi.fastq > ${BASE}.n_removed.fastq
 # remove random 4 base pair seqs that make up the UMI from the fastq read sequence line:
 cutadapt -u 4 -o ${BASE}.trim_1.fastq -j ${THREADS} ${BASE}.n_removed.fastq
 cutadapt -m 16 -u  -4 -o ${BASE}.trim_2.fastq -j ${THREADS} ${BASE}.trim_1.fastq
-
-# remove space from the identifier of the fastq
-#sed 's/ /-/' ${BASE}.trim_2.fastq > ${BASE}.no_space.fastq
 
 # remove intermediate fastq files
 [ -f "${BASE}.trim_2.fastq" ] && rm ${BASE}.umi.fastq ${BASE}.n_removed.fastq ${BASE}.trim_1.fastq
@@ -49,4 +49,3 @@ mv ${BASE}.fastq.gz ${BASE}.txt.gz
 
 # remove original fastq file
 [ -f "${BASE}.txt.gz" ] && rm ${FILE%.gz}
-

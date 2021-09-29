@@ -13,7 +13,7 @@ cd $PBS_O_WORKDIR
 THREADS=6
 
 IN_DIR=../Links
-IN_SEQ=($(find ${IN_DIR} -name "*.txt.gz" -and -name "s_Mov10l1_KO*"))
+IN_SEQ=($(find ${IN_DIR} -name "*.txt.gz"))
 FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${IN_DIR}/}
 BASE=${BASE%.txt.gz}

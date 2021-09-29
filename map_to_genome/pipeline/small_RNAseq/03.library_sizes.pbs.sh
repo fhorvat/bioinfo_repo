@@ -4,7 +4,7 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -N pbs.03.library_sizes
-#PBS -l select=ncpus=1:mem=20g
+#PBS -l select=ncpus=1:mem=5g
 #PBS -j oe
 #PBS -J 0-%N_TOTAL
 cd $PBS_O_WORKDIR

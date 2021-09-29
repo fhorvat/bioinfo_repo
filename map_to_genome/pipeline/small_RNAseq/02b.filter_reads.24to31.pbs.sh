@@ -4,7 +4,7 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -N pbs.02b.filter_bams.24to31
-#PBS -l select=ncpus=1:mem=30g
+#PBS -l select=ncpus=1:mem=10g
 #PBS -j oe
 #PBS -J 0-%N_SAMPLES
 cd $PBS_O_WORKDIR
@@ -15,7 +15,7 @@ source ./000.load_variables.sh
 
 # files
 INPUT_DIR=.
-IN_SEQ=($(find $INPUT_DIR \( -name "*.bam" -not -name "*21to23nt*" -not -name "*24to31nt*" -not -name "*19to32*" -not -name "*perfect*" \)))
+IN_SEQ=($(find $INPUT_DIR -maxdepth 1 \( -name "*.bam" -not -name "*21to23nt*" -not -name "*24to31nt*" -not -name "*19to32*" -not -name "*perfect*" \)))
 FILE=${IN_SEQ[$PBS_ARRAY_INDEX]}
 BASE=${FILE#${INPUT_DIR}/}
 BASE=${BASE%.bam}.24to31nt

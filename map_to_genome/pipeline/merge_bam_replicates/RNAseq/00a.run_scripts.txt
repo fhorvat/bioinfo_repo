@@ -6,7 +6,7 @@ sh 00b.change_scripts.sh
 JOB_01=`qsub 01.merge_bams.pbs.sh`;echo $JOB_01
 
 # scales bigWig to RPM
-B_02=`qsub -W depend=afterok:$JOB_01 02.scale_bigWig.pbs.sh`;echo $JOB_02
+JOB_02=`qsub -W depend=afterok:$JOB_01 02.scale_bigWig.pbs.sh`;echo $JOB_02
 
 ###########################
 
