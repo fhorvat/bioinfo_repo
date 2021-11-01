@@ -1,0 +1,446 @@
+---
+title: "Lecture 3.2 tidyverse::tidyr"
+author: "fhorvat"
+date: "`r format(Sys.time(), '%d. %B, %Y')`"
+output: 
+  learnr::tutorial:
+    progressive: false
+    allow_skip: true
+runtime: shiny_prerendered
+fontsize: 22pt
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## **Tidy data**
+
+<br/>
+
+*"Happy families are all alike; every unhappy family is unhappy in its own way."* 
+**Leo Tolstoy**
+
+*"Tidy datasets are all alike; every messy dataset is messy in its own way."* 
+**Hadley Wickham**
+
+<br/>
+
+### What is a **tidy data**? 
+Tidy datasets provide a standardized way to link the structure of a dataset (its physical layout) with its semantics (its meaning). In tidy data:
+
+* Each variable forms a column.
+* Each observation forms a row.
+* Each type of observational unit forms a table.
+
+Any other arrangement of the data is not tidy (i.e. it's messy data).
+
+
+## Messy data
+### There are different types and flavours of messy data.
+
+For example: 
+```{r, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+library(tidyr)
+library(tibble)
+library(dplyr)
+library(magrittr)
+library(stringr)
+
+(preg <- read.csv("./tables/preg.csv", stringsAsFactors = FALSE))
+```
+
+<br/>
+
+Another messy example of same data:
+```{r, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+read.csv("./tables/preg2.csv", stringsAsFactors = FALSE)
+```
+
+<br/>
+
+How would the tidy version of the same data look like? 
+```{r, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+preg %>% 
+  pivot_longer(cols = -name, names_to = "treatment", values_to = "n", names_prefix = "treatment") %>%
+  arrange(name, treatment)
+```
+
+<br/>
+
+### Five most common problems with messy datasets:
+
+* Column headers are values, not variable names.
+* Multiple variables are stored in one column.
+* Variables are stored in both rows and columns.
+* Multiple types of observational units are stored in the same table
+* A single observational unit is stored in multiple tables.  
+
+<br/>
+
+```{r fig1, echo = FALSE, out.width = "55%"}
+knitr::include_graphics("images/leo.jpg")
+```
+
+
+## **tidyr overview**
+
+```{r fig2, echo = FALSE, out.width = "35%"}
+knitr::include_graphics("images/tidyr.png")
+```
+
+<br/>
+
+Most messy datasets can be tidied with a small set of tools. *tidyr* package provides those tools:
+
+* `pivot_longer()` transforms data **wide-to-long**, equivalent to ```data.table::melt()```
+* `pivot_wider()` transforms data **long-to-wide**, equivalent to ```data.table::dcast()```
+* `separate()` pulls a single character column into multiple columns
+* `unite()` combines multiple columns into a single character column
+
+You will need following libraries for this exercise: 
+```{r, echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE}
+library(tidyr)
+library(tibble)
+library(dplyr)
+library(magrittr)
+library(stringr)
+library(data.table)
+library(readr)
+```
+
+
+## **Values in column headers**
+### Column headers are values, not variable names
+
+* the **relig_income** dataset stores counts based on a survey which (among other things) asked people about their religion and annual income
+* this dataset contains three variables:
+* **religion**, stored in the rows
+* **income** spread across the column names
+* **count** stored in the cell values
+
+```{r, echo = FALSE, rows.print = 7}
+relig_income
+```
+
+<br/>
+
+To tidy it, we need to shape data from wide to long:
+```{r, echo = TRUE, eval = FALSE}
+pivot_longer(data = relig_income, 
+             cols = -religion, 
+             names_to = "income", 
+             values_to = "count")
+```
+
+* the first argument is dataset to reshape, **relig_income**
+* the second argument are columns which needs to be reshaped, in this case every column except *religion*
+* **names_to** argument gives the name of the variable which will be created from data stored in column names, in this case *income*
+* **values_to** argument gives the name of the varible that will be created from data stored in cell value, in this case *count*
+* since neither *income* or *count* columns don't exist in **relig_income** dataset, we need to provide them as character strings surrounded in quotes
+
+```{r, echo = FALSE, eval = TRUE}
+pivot_longer(data = relig_income, 
+             cols = -religion, 
+             names_to = "income", 
+             values_to = "count")
+```
+
+<br/>
+
+### Another example
+
+The **Billboard** dataset shown below records the date a song first entered the billboard top 100:  
+
+* variables **artist**, **track** and **date.entered** are in columns
+* **rank** in each week after it enters the top 100 is recorded in cells across 75 columns, **wk1** to **wk75**
+* this form of storage is not tidy, but it is useful for data entry
+* it reduces duplication since otherwise each song in each week would need its own row, and song metadata like title and artist would need to be repeated
+
+```{r, echo = FALSE, rows.print = 7}
+billboard
+```
+
+<br/>
+
+To tidy **Billboard** dataset column names become a variable called **week** and values become a variable called **rank**: 
+
+```{r, echo = T, eval = F}
+pivot_longer(data = billboard, 
+             cols = starts_with("wk"), 
+             names_to = "week", 
+             names_prefix = "wk",
+             names_ptypes = list(week = integer()), 
+             values_to = "rank", 
+             values_drop_na = TRUE)
+```
+
+Here we also used several additional arguments to make data even nicer:
+
+* to select columns we can use ```starts_with()``` instead of setting range of columns
+* since not every song stays in the charts for 76 weeks, we can use **values_drop_na** argument to drop rows that correspond to missing values
+* if we want to determine how long each song stayed in the charts, first we need to convert week variable to an integer
+* this is done by using two additional arguments: **names_prefix** strips of **wk** prefix, and **names_transform** specifies that **week** should be an integer
+
+```{r, echo = F, eval = T}
+pivot_longer(data = billboard, 
+             cols = starts_with("wk"), 
+             names_to = "week", 
+             names_prefix = "wk",
+             names_transform = list(week = as.integer), 
+             values_to = "rank", 
+             values_drop_na = TRUE)
+```
+
+<br/>
+
+Alternatively, if you don't want to memorize all this arguments you can process dataset downstream with ```dplyr::filter()``` and ```dplyr::mutate()```. 
+
+```{r, echo = TRUE, eval = FALSE}
+pivot_longer(data = billboard, 
+             cols = starts_with("wk"), 
+             names_to = "week", 
+             values_to = "rank") %>% 
+  filter(!is.na(rank)) %>% 
+  mutate(week = str_remove(week, "^wk") %>% as.integer(.))
+```
+
+
+## **Multiple variables in column**
+### Multiple variables stored in one column
+
+The **who** dataset comes from the World Health Organisation, and records the counts of confirmed tuberculosis cases by country, year, and demographic group:
+
+* **country**, **iso2**, **iso3** and **year** are already variables
+* columns from **new_sp_m014** to **newrel_f65** encode 4 variables in their names:
+* *new_/new* prefix indicates counts of new cases. Since dataset contains only new cases, this is constant so we'll ignore it
+* *sp/rel/sp/ep* describes how the case was **diagnosed**
+* *m/f* is the **sex** of the patient
+* *014/1524/2535/3544/4554/65* gives the **age** range of the patient
+
+```{r, echo = FALSE, eval = T, rows.print = 7}
+who
+```
+
+<br/>
+
+To tidy it:  
+
+* We specify multiple column names in **names_to**.  
+* With **names_pattern** we provide regular expression containing groups (defined by () ) and it puts each group in a column.  
+* We also specify the types of the sex and age columns using **names_ptypes** argument. 
+
+```{r, echo = TRUE, eval = TRUE}
+pivot_longer(data = who, 
+             cols = new_sp_m014:newrel_f65,
+             names_to = c("diagnosis", "sex", "age"), 
+             names_pattern = "new_?(.*)_(.)(.*)",
+             names_ptypes = list(gender = factor(levels = c("f", "m")),
+                                 age = factor(levels = c("014", "1524", "2534", "3544", 
+                                                         "4554", "5564", "65"), 
+                                              ordered = TRUE)),
+             values_to = "count")
+```
+
+
+## **Multiple observations per row**
+### Multiple observations are stored in each row
+
+You can usually recognize this case because name of the column that you want to appear in the output is part of the column name in the input. In this **family** dataset for each child there are two values:
+
+* Their **gender** and their **dob** (date of birth).
+* These need to go into separate columns in the result.  
+
+```{r, echo = F, eval = T}
+family <- tribble(
+  ~family,  ~dob_child1,  ~dob_child2, ~gender_child1, ~gender_child2,
+  1L, "1998-11-26", "2000-01-29",             1L,             2L,
+  2L, "1996-06-22",           NA,             2L,             NA,
+  3L, "2002-07-11", "2004-04-05",             2L,             2L,
+  4L, "2004-10-10", "2009-08-27",             1L,             1L,
+  5L, "2000-12-05", "2005-02-28",             2L,             1L,
+)
+(family %<>% mutate_at(vars(starts_with("dob")), readr::parse_date))
+```
+
+<br/>
+
+To tidy this kind of dataset:  
+
+* We again supply multiple variables to **names_to**.  
+* Using **names_sep** we split up each variable name.  
+* Special name **.value** tells ```pivot_longer()``` that that part of the column name specifies the 'value' being measured (which will become a variable in the output). 
+
+```{r, echo = T, eval = T}
+pivot_longer(data = family, 
+             cols = -family, 
+             names_to = c(".value", "child"), 
+             names_sep = "_", 
+             values_drop_na = TRUE)
+```
+
+<br/>
+
+You can see that the ```pivot_longer()``` syntax is actually quite similar to ```data.table::melt()```:
+
+```{r, echo = T, eval = F}
+pivot_longer(data = family, 
+             cols = -family,
+             names_pattern = "(.*)_(.*)",
+             names_to = c(".value", "child"),
+             values_drop_na = TRUE)
+```
+
+```{r, echo = T, eval = F}
+family.dt <- as.data.table(family)
+melt(dat = family.dt, 
+     measure = patterns("^dob", "^gender"), 
+     value.name = c("dob", "gender"), 
+     variable.name = "child",
+     na.rm = TRUE)
+```
+
+
+## **Long-to-wide**
+
+```pivot_wider()``` is the inverse function of ```pivot_longer()```: 
+
+* It makes a dataset wider by increasing the number of columns and decreasing the number of rows
+* It is relatively rare to need ```pivot_wider()``` to make tidy data
+* However, it is often useful for creating summary tables for presentation, or data in a format needed by other tools
+
+**fish_encounters** dataset describes when fish swimming down a river are detected by automatic monitoring stations. 
+
+
+```{r, echo = F, eval = T}
+fish_encounters
+```
+
+<br/>
+
+Dataset only records when a fish was detected by the station (i.e. it does not record when it was not detected which kinda makes sense): 
+
+* That means the output data is filled with NA values
+* However, in this case we know that the absence of a record means that the fish was not seen
+* We use **values_fill** argument to fill these missing values with zeros 
+
+```{r, echo = T, eval = T}
+pivot_wider(data = fish_encounters,
+            names_from = station, 
+            values_from = seen,
+            values_fill = list(seen = 0))
+```
+
+<br/>
+
+### Generate column name from multiple variables
+In the following table we have data about **production** of two different products *A* and *B* produced in two countries *AI* and *EI* from years 2000 to 2014. We also have information about coefficient of production: 
+
+```{r, echo = F, eval = T}
+(production <- 
+   expand_grid(product = c("A", "B"), 
+               country = c("AI", "EI"), 
+               year = 2000:2014) %>%
+   filter((product == "A" & country == "AI") | product == "B") %>% 
+   mutate(production = rnorm(nrow(.))))
+```
+
+<br/>
+
+We want to widen the data: 
+
+* One column for each combination of product and country.    
+* The key is to specify multiple variables for **names_from**. 
+
+```{r, eval = T, echo = T}
+pivot_wider(data = production, 
+            names_from = c(product, country), 
+            values_from = production)
+```
+
+<br/>
+
+### No identifying variable
+Imagine you have list of **contacts** that you copied and pasted from a website:
+
+```{r, eval = T, echo = F}
+(contacts <- tribble(~field, ~value,
+                     "name", "Jiena McLellan",
+                     "company", "Toyota", 
+                     "name", "John Smith", 
+                     "company", "google", 
+                     "email", "john@google.com",
+                     "name", "Huxley Ratcliffe"))
+```
+
+<br/>
+
+This is challenging to tidy because there is no variable that identifies which observations belong together. We can fix this by:
+
+* Noting that every contact starts with a name
+* Creating a unique id by counting every time we see *name* as the field:
+
+```{r, echo = T, eval = T}
+(contacts %<>% mutate(person_id = cumsum(field == "name")))
+```
+
+<br/>
+
+Now that we have a unique identifier for each person, we can pivot field and value into the columns:
+
+```{r, echo = T, eval = T}
+pivot_wider(data = contacts, 
+            names_from = field, 
+            values_from = value)
+```
+
+<br/>
+
+
+## **Variables in rows and columns**
+### Variables are stored in both rows and columns
+
+The most complicated form of messy data occurs when variables are stored in both rows and columns.  
+The table shows daily **weather** data from the Global Historical Climatology Network for one weather station (MX17004) in Mexico for five months in 2010: 
+
+* Variables are in individual columns (*id*, *year*, *month*)
+* Variables are spread across columns (*day*, *d1-d31*)
+* Variable are spread across rows (*tmin*, *tmax*) (minimum and maximum temperature)
+
+```{r, echo = FALSE, eval = TRUE}
+(weather <- as_tibble(read.csv("./tables/weather.csv", stringsAsFactors = FALSE)))
+```
+
+<br/>
+
+Since this is very messy, it needs to be tidied in several steps. The most obvious problem is that *day* variable is spread across multiple columns so we start by fixing that:
+
+```{r, echo = T, eval = T}
+(weather_long <- pivot_longer(data = weather, 
+                              cols = d1:d31, 
+                              names_to = "day", 
+                              values_to = "value", 
+                              values_drop_na = TRUE))
+```
+
+<br/>
+
+Now it's mostly tidy, but the *element* column is not a variable (it stores the names of variables). We can complete the tidying by pivoting *element* and *value* to make *tmax* and *tmin* columns:
+
+```{r, echo = T, eval = T}
+pivot_wider(data = weather_long, 
+            names_from = element, 
+            values_from = value)
+```
+
+
+## Additional resources
+*tidyr* cheatsheet: https://github.com/rstudio/cheatsheets/blob/master/data-import.pdf  
+More about tidy data: https://tidyr.tidyverse.org/articles/tidy-data.html  
+Tidy data paper: https://www.jstatsoft.org/index.php/jss/article/view/v059i10/v59i10.pdf  
+Pivoting with *tidyr*: https://tidyr.tidyverse.org/articles/pivot.html  
+
+
+

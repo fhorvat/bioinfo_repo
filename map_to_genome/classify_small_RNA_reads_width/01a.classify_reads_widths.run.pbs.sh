@@ -4,9 +4,9 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -N pbs.01a.classify_reads_widths
-#PBS -l select=ncpus=1:mem=20g
+#PBS -l select=ncpus=1:mem=50g
 #PBS -j oe
-#PBS -J 0-%N_SAMPLES
+#PBS -J 0-2
 cd $PBS_O_WORKDIR
 
 # ----------------Loading variables------------------- #
@@ -26,9 +26,10 @@ echo -e '\n'\
 single_end=\'$SINGLE_END\''\n'\
 bam_path=\'$BAM_PATH\''\n'\
 bam_name=\'$BAM_NAME\''\n'\
-experiment_name=\'$EXPERIMENT_NAME\''\n'\
-features_ensembl=\'$FEATURES_ENSEMBL\''\n'\
-features_rmsk=\'$FEATURES_RMSK\''\n'
+features_exons=\'$FEATURES_EXONS\''\n'\
+features_rmsk=\'$FEATURES_RMSK\''\n'\
+features_geneInfo=\'$FEATURES_GENEINFO\''\n'\
+features_mirbase=\'$FEATURES_MIRBASE\''\n'
 
 # ----------------Commands------------------- #
 # run script
@@ -36,6 +37,7 @@ Rscript $SCRIPT \
 --single_end $SINGLE_END \
 --bam_path $BAM_PATH \
 --bam_name $BAM_NAME \
---experiment_name $EXPERIMENT_NAME \
---features_ensembl $FEATURES_ENSEMBL \
---features_rmsk $FEATURES_RMSK
+--features_exons $FEATURES_EXONS \
+--features_geneInfo $FEATURES_GENEINFO \
+--features_rmsk $FEATURES_RMSK \
+--features_mirbase $FEATURES_MIRBASE

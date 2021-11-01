@@ -4,7 +4,7 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -N pbs.02.scale_bigWig
-#PBS -l select=ncpus=1:mem=10g
+#PBS -l select=ncpus=1:mem=20g
 #PBS -J 0-%N_JOBS
 #PBS -j oe
 cd $PBS_O_WORKDIR

@@ -57,3 +57,6 @@ STAR.2.7 --readFilesIn ${FILE} ${STAR_PAR}
 
 # rename bam
 mv ${BASE}.Aligned.sortedByCoord.out.bam ${BASE}.mapped.bam
+
+# index
+samtools index -@ ${THREADS} ${BASE}.mapped.bam

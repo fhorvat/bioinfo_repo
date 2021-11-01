@@ -205,6 +205,20 @@ reads_class_final <- classReadsHier(bam_path = bam_path,
                                     isFirstInPair = NA,
                                     overlap_type = "any")
 
+# get number of alignments in bam file
+read_number <-
+  Rsamtools::countBam(file = bam_path, param = ScanBamParam(flag = scanBamFlag(isFirstMateRead = NA,
+                                                                               isSecondaryAlignment = F))) %$%
+  records
+
+# check if the counts match the alignment number
+if(!(sum(reads_class_final) == read_number)){
+
+  # stop the script
+  stop("You lost some reads mate! Check your script!")
+
+}
+
 ### create table, save
 # add number of reads in each class to table
 reads_class_final_sum <- tibble(read_group = names(reads_class_final), 

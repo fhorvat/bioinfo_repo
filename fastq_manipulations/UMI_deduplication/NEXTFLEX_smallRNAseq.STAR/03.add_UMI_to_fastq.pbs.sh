@@ -5,7 +5,7 @@
 #PBS -M fihorvat@gmail.com
 #PBS -m n
 #PBS -N pbs.03.add_UMI_to_fastq
-#PBS -J 0-2
+#PBS -J 0-1
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
