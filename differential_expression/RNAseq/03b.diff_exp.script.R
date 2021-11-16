@@ -547,7 +547,7 @@ if(results_groups != "no"){
   
   
   ### create Venn-diagrams
-  if(TRUE){
+  if(length(results_groups) <= 5){
     
     ## get list of upregulated genes
     upregulated_list <- invisible(purrr::map(results_groups, function(result){
