@@ -1,0 +1,1 @@
+tapply(iris$Sepal.Length, iris$Species, max)

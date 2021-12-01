@@ -30,6 +30,7 @@ library(openxlsx)
 
 library(viridis)
 library(dendsort)
+library(GGally)
 
 ######################################################## SOURCE FILES
 

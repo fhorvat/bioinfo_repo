@@ -1,0 +1,22 @@
+In order to install packages to version-independed folder, add to your .bashrc:
+
+# R common library path
+export R_LIBS_USER=/common/WORK/fhorvat/programi/R/libraries
+
+
+### installation R from source:
+R_version="4.1.2"
+
+# make dirs
+mkdir /common/WORK/fhorvat/programi/R/R-${R_version}
+cd /common/WORK/fhorvat/programi/R
+mkdir tmp
+cd tmp
+wget https://cloud.r-project.org/src/base/R-4/R-${R_version}.tar.gz
+dtrx R-${R_version}.tar.gz
+cd R-${R_version}
+
+./configure --prefix=/common/WORK/fhorvat/programi/R/R-${R_version} --enable-R-shlib --with-pcre1
+make
+make install
+make distclean

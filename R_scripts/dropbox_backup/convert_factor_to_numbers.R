@@ -1,0 +1,1 @@
+as.numeric(levels(dat$f))[dat$f]

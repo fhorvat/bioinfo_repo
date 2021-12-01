@@ -53,6 +53,10 @@ library(ggplot2)
   cat(x, sep = "\n")
 }
 
+## reads .xlsx table and transforms it to tibble
+.env$read_xlsx <- function(x) {
+  openxlsx::read.xlsx(x) %>% as_tibble(.)
+} 
 
 ### INFO: parses arguments from command line into named vector
 ### DATE: 17. 06. 2019.

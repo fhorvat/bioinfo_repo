@@ -1,0 +1,170 @@
+### INFO:
+### DATE: Fri Aug 31 15:10:23 2018
+### AUTHOR: Filip Horvat
+rm(list = ls()); gc()
+options(bitmapType = "cairo")
+wideScreen()
+
+######################################################## WORKING DIRECTORY
+setwd("/common/WORK/fhorvat/Projekti/Svoboda/smallRNASeq_2018/Eliska_mESC_MosIR/Analysis/smallRNA_clusters")
+
+######################################################## LIBRARIES
+library(dplyr)
+library(readr)
+library(magrittr)
+library(stringr)
+library(tibble)
+library(tidyr)
+library(ggplot2)
+
+library(data.table)
+library(GenomicRanges)
+library(GenomicAlignments)
+library(GenomicFeatures)
+library(Rsamtools)
+
+######################################################## SOURCE FILES
+
+######################################################## FUNCTIONS
+### scans chromosomes in bam file
+chrFinder <- function(bam.path, filter = FALSE, output = "data.frame"){
+  
+  # scan bam
+  s <- scanBamHeader(bam.path)
+  st <- s[[1]]$text
+  st <- do.call(rbind, st[names(st) == "@SQ"])
+  st[, 1] <- str_replace(st[,1], "SN:", "")
+  st[, 2] <- str_replace(st[,2], "LN:", "")
+  
+  # filter
+  if(filter == TRUE){
+    st <- st[!str_detect(st[, 1], "random")]
+  }
+  
+  # output
+  if(output == 'data.frame'){
+    
+    vst <- data.frame(chr = st[, 1], chrlen = as.numeric(st[, 2]), stringsAsFactors = F)
+    
+  }else{
+    
+    vst <- as.numeric(st[, 2])
+    names(vst) <- st[, 1]
+    
+  }
+  
+  # return
+  return(vst)
+  
+}
+
+
+######################################################## PATH VARIABLES
+# set inpath
+inpath <- getwd()
+
+# set outpath
+outpath <- getwd()
+
+# genome path
+genome_path <- "/common/DB/genome_reference/mouse/mm10.GRCm38.GCA_000001635.2"
+
+# get gene info path
+info_path <- list.files(genome_path, pattern = "ensembl.91.*[0-9]{6}.UCSCseqnames.geneInfo.csv", full.names = T)
+
+# get paths of reduced exons
+exons_path <- list.files(genome_path, pattern = "ensembl.91.*[0-9]{6}.UCSCseqnames.reducedExons.RDS", full.names = T)
+
+# get repeatMasker path
+rmsk_path <- list.files(genome_path, pattern = "rmsk.*[0-9]{6}.clean.fa.out.gz", full.names = T)
+
+# get miRBase gff path
+mirbase_path <- list.files(genome_path, pattern = "miRBase.*gff3", full.names = T)
+
+# get path to sample mapped bam file
+sample_bam_path <- "/common/WORK/fhorvat/Projekti/Svoboda/smallRNASeq_2018/Eliska_mESC_MosIR/Data/Mapped/STAR_mm10.pCAG_EGFP_MosIR.new/s_RS10_Mos_r1.SE.mis_0.18to30nt.bam"
+
+######################################################## READ DATA
+# read info about genes
+genes_info <- readr::read_csv(info_path)
+
+# gtf exons by genes
+exons_gr <- readRDS(file = exons_path)
+
+# read repeatMasker
+rmsk_df <- readr::read_delim(rmsk_path, delim = "\t")
+
+# read miRBase gff
+mirna_gr <- rtracklayer::import.gff(con = mirbase_path)
+
+######################################################## MAIN CODE
+### prepare annotations - repeatMasker, exons of genes from ENSEMBL annotation, miRBase
+## exons
+exons_df <-
+  exons_gr %>%
+  as.data.frame(.) %>%
+  tibble::as.tibble(.) %>%
+  dplyr::left_join(., genes_info %>% dplyr::select(gene_id, gene_biotype, gene_name), by = "gene_id") %>%
+  dplyr::select(seqnames:strand, gene_id, gene_name, gene_biotype) %>%
+  tidyr::unite(gene_id, c("gene_name", "gene_id"), sep = "|") %>%
+  dplyr::filter(!str_detect(gene_biotype, "miRNA"))
+
+## mature miRNA
+mirna_gr <- mirna_gr[mcols(mirna_gr)$type == "miRNA"]
+mcols(mirna_gr) <- mcols(mirna_gr)[, c("Name")]
+names(mcols(mirna_gr)) <- "gene_id"
+mcols(mirna_gr)$gene_biotype <- "miRNA.mature"
+
+## repeatMasker
+# add info
+rmsk_df %<>%
+  dplyr::mutate(repFamily = stringr::str_replace_na(repFamily),
+                gene_id = str_c(repFamily, "|", repName) %>% str_remove("NA\\|"),
+                gene_biotype = repClass)
+
+# repeatMasker transposable elements
+rmsk_te <-
+  rmsk_df %>%
+  dplyr::filter(str_detect(repClass, "LINE|SINE|LTR")) %>%
+  dplyr::select(-c(repName, repClass, repFamily)) %>%
+  GenomicRanges::GRanges(.)
+
+# repeatMasker other RNA
+rmsk_RNA <-
+  rmsk_df %>%
+  dplyr::filter(str_detect(repClass, "RNA")) %>%
+  dplyr::select(-c(repName, repClass, repFamily)) %>%
+  GenomicRanges::GRanges(.)
+
+## ENSEMBL
+# ensembl mRNAs
+ensembl_mrna <-
+  exons_df %>%
+  dplyr::filter(gene_biotype == "protein_coding") %>%
+  GenomicRanges::GRanges(.)
+
+# ensembl other RNA
+ensembl_RNA <-
+  exons_df %>%
+  dplyr::filter(!str_detect(gene_biotype, "protein_coding")) %>%
+  GenomicRanges::GRanges(.)
+
+# joined other RNA
+other_RNA <- c(rmsk_RNA, ensembl_RNA)
+
+# create whole chromosomes as "other" annotation
+bam_chr <- chrFinder(sample_bam_path)
+other_gr <- GenomicRanges::GRanges(seqnames = bam_chr$chr,
+                                   ranges = IRanges(start = 1, end = bam_chr$chrlen),
+                                   gene_id = rep("other", nrow(bam_chr)),
+                                   gene_biotype = rep("other", nrow(bam_chr)))
+
+### add annotation to list
+l.annot <- list(miRNA = mirna_gr,
+                TE = rmsk_te,
+                mRNA = ensembl_mrna,
+                RNA_other = other_RNA,
+                other = other_gr)
+
+# save RDS
+saveRDS(l.annot, file = file.path(outpath, "l.annot.RDS"))

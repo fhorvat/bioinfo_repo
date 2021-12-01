@@ -32,6 +32,7 @@ library(viridis)
 library(dendsort)
 library(VennDiagram)
 library(geneplotter)
+library(GGally)
 
 ######################################################## SOURCE FILES
 
