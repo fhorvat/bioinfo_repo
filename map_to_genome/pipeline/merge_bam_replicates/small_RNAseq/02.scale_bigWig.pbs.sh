@@ -24,20 +24,35 @@ BASE=${FILE#${INPUT_DIR}/}
 BASE=${BASE%.bam}
 
 # ----------------Commands------------------- #
-# get number of mapped reads in millions
+### get number of mapped reads in millions
+# scale to number of 19-32nt reads in million
 if [ ${SCALING} == "19to32nt" ]
 then
-	REPLICATE=${BASE%.*}
-	READ_LENGTH="19to32nt"
-   	awk -v PAT="${REPLICATE%.${LAYOUT}}.*${READ_LENGTH}\t" -F '\t' '$0 ~ PAT {print $0}' ${LOG}
-	SCALE_FACTOR=$(awk -v PAT="${REPLICATE%.${LAYOUT}}.*${READ_LENGTH}\t" -F '\t' '$0 ~ PAT {sum += $3} END {print 1000000 / sum}' ${LOG})
-	BASE=${BASE}.scaled_19to32
-else
-	REPLICATE=${BASE%.*}
-	READ_LENGTH=${BASE#*.${LAYOUT}.}
+        REPLICATE=${BASE%.*}
+        READ_LENGTH="19to32nt"
         awk -v PAT="${REPLICATE%.${LAYOUT}}.*${READ_LENGTH}\t" -F '\t' '$0 ~ PAT {print $0}' ${LOG}
         SCALE_FACTOR=$(awk -v PAT="${REPLICATE%.${LAYOUT}}.*${READ_LENGTH}\t" -F '\t' '$0 ~ PAT {sum += $3} END {print 1000000 / sum}' ${LOG})
-	BASE=${BASE}.scaled
+        BASE=${BASE}.scaled_19to32
+
+# scale each read length to total number of reads of the respective length
+else
+        REPLICATE=${BASE%.*}
+        READ_LENGTH=${BASE#*.${LAYOUT}.}
+
+        # special case when reads of all lengths are used as scaling factor
+        if [ $READ_LENGTH == ${BASE} ]
+        then
+                awk -v PAT="${REPLICATE}.*${LAYOUT}\t" -F '\t' '$0 ~ PAT {print $0}' ${LOG}
+                SCALE_FACTOR=$(awk -v PAT="${REPLICATE}.*${LAYOUT}\t" -F '\t' '$0 ~ PAT {sum += $3} END {print 1000000 / sum}' ${LOG})
+                BASE=${BASE}.scaled
+        
+	# otherwise use respective read lengths as scaling factor
+        else
+                awk -v PAT="${REPLICATE%.${LAYOUT}}.*${READ_LENGTH}\t" -F '\t' '$0 ~ PAT {print $0}' ${LOG}
+                SCALE_FACTOR=$(awk -v PAT="${REPLICATE%.${LAYOUT}}.*${READ_LENGTH}\t" -F '\t' '$0 ~ PAT {sum += $3} END {print 1000000 / sum}' ${LOG})
+                BASE=${BASE}.scaled
+        fi
+
 fi
 
 # bam to scaled bedGraph, bedGraph to bigWig
