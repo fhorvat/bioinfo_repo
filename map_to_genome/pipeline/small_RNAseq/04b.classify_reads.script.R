@@ -106,7 +106,7 @@ classReadsHier <- function(bam_path, subject_ranges, yield = 1000000, isFirstInP
       
       # add all reads in chunk to "not_annotated" category
       read_counts <- rep(0, length(class_hier))
-      read_counts[class_hier] <- unique_reads_number
+      read_counts[length(class_hier)] <- unique_reads_number
       
       # add to count sums
       count_sums <- count_sums + read_counts

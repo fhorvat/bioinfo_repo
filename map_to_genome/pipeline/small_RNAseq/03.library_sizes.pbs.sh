@@ -19,7 +19,7 @@ BASE=${BASE%.bam}
 
 # ----------------Commands------------------- #
 # get histogram of CIGAR values of unique alignments
-samtools view ${BASE}.bam | awk '!($1 in a){a[$1]; print $6}' | sort -n | uniq -c | sed -e 's/^ *//g;s/ /\'$'\t/g'  > library_hist.${BASE}.txt
+samtools view ${FILE} | awk '!($1 in a){a[$1]; print $6}' | sort -n | uniq -c | sed -e 's/^ *//g;s/ /\'$'\t/g'  > library_hist.${BASE}.txt
 
 # sum all alignments count to get total library size, add to one file
 LIB_SIZE=$(awk '{total+=$1}END{print total}' library_hist.${BASE}.txt)
