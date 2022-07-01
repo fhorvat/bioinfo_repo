@@ -25,6 +25,9 @@ args <-
 # blat .psl path
 blat_psl_path <- args$psl
 
+# result name
+result_name <- args$result_name
+
 # blat .psl path with score
 blat_psl_score_path <- str_replace(blat_psl_path, "\\.psl$", ".score.psl")
 
@@ -59,12 +62,12 @@ if(nrow(psl) > 0) {
     str_c(., collapse = "\t")
   
   # write along with header
-  readr::write_lines(c(psl_header, psl_top), path = str_replace(blat_psl_path, "\\.all\\.psl$", ".psl"))
+  readr::write_lines(c(psl_header, psl_top), file = result_name)
   
 }else{
   
   # write just header
-  readr::write_lines(c(psl_header), path = str_replace(blat_psl_path, "\\.all\\.psl$", ".psl"))
+  readr::write_lines(c(psl_header), file = result_name)
   
 }
 
